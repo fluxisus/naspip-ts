@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "crypto-payments-standard",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "exactOptionalPropertyTypes": false,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": false,
+    "declaration": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "module": "CommonJS",
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "require": ["tsconfig-paths/register"],
+    "swc": true
+  }
+}
