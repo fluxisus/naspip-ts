@@ -47,6 +47,7 @@
     "update": "npx npm-check-updates"
   },
   "dependencies": {
+    "paseto": "^3.1.4",
     "typescript": "^5.6.3"
   },
   "devDependencies": {

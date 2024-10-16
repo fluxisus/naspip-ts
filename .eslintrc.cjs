@@ -1,5 +1,4 @@
 module.exports = {
-  
     rules: {
     "unicorn/expiring-todo-comments": "off",
   },
