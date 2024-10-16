@@ -30,8 +30,8 @@
   "exports": {
     ".": {
       "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
     }
   },
   "scripts": {
@@ -47,6 +47,7 @@
     "update": "npx npm-check-updates"
   },
   "dependencies": {
+    "@swc/core": "^1.7.36",
     "typescript": "^5.6.3"
   },
   "devDependencies": {
