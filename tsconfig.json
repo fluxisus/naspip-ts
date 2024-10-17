@@ -30,6 +30,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
+  "include": ["src"],
   "ts-node": {
     "transpileOnly": true,
     "require": ["tsconfig-paths/register"],
