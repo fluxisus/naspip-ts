@@ -20,6 +20,9 @@
     "url": "https://github.com/NachoNorris/crypto-payments-standard/issues"
   },
   "homepage": "https://github.com/NachoNorris/crypto-payments-standard#readme",
+  "bin": {
+    "commit": "commit/cli.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.mjs",
@@ -29,22 +32,26 @@
   ],
   "exports": {
     ".": {
-      "require": "./dist/index.js",
       "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     }
   },
   "scripts": {
+    "commit": "commit/cli.js",
     "release": "release-it",
     "clean": "rm -rf dist",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint --cache .ts ./src",
     "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "dev": "ts-node ./src/index.ts"
+    "dev": "ts-node ./src/index.ts",
+    "husky": "husky init",
+    "prepare": "husky"
   },
   "dependencies": {
     "@swc/core": "^1.7.36",
     "eslint": "^9.12.0",
+    "paseto": "^3.1.4",
     "typescript": "^5.6.3"
   },
   "devDependencies": {
