@@ -38,16 +38,18 @@
     }
   },
   "scripts": {
-    "commit": "commit/cli.js",
-    "release": "release-it",
-    "clean": "rm -rf dist",
-    "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint --cache ./src",
     "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "dev": "tsc ./src/index.ts",
+    "clean": "rm -rf dist",
+    "clean-modules": "rm -rf node_modules",
+    "commit": "commit/cli.js",
+    "dev": "ts-node ./src/index.ts",
     "husky": "husky init",
+    "lint": "eslint --cache ./src",
     "prepare": "husky",
-    "update": "npx npm-check-updates --root"
+    "release": "release-it",
+    "test": "echo 'No tests yet'",
+    "typecheck": "tsc -p tsconfig.json",
+    "update": "npx npm-check-updates"
   },
   "dependencies": {
     "paseto": "^3.1.4"
