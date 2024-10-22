@@ -38,30 +38,34 @@
     }
   },
   "scripts": {
-    "commit": "commit/cli.js",
-    "release": "release-it",
-    "clean": "rm -rf dist",
-    "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint --cache .ts ./src",
     "build": "tsup ./src/index.ts --format cjs,esm --dts",
+    "clean": "rm -rf dist",
+    "clean-modules": "rm -rf node_modules",
+    "commit": "commit/cli.js",
     "dev": "ts-node ./src/index.ts",
     "husky": "husky init",
-    "prepare": "husky"
+    "lint": "eslint --cache .ts ./src",
+    "prepare": "husky",
+    "release": "release-it",
+    "test": "echo 'No tests yet'",
+    "typecheck": "tsc -p tsconfig.json",
+    "update": "npx npm-check-updates"
   },
   "dependencies": {
     "@swc/core": "^1.7.36",
-    "eslint": "^9.12.0",
+    "eslint": "^9.13.0",
+    "npm-check-updates": "^17.1.4",
     "paseto": "^3.1.4",
     "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
-    "@release-it/conventional-changelog": "^9.0.0",
+    "@release-it/conventional-changelog": "^9.0.1",
     "commitizen": "^4.3.1",
     "commitlint": "^19.5.0",
     "husky": "^9.1.6",
-    "release-it": "^17.9.0",
+    "release-it": "^17.10.0",
     "tsup": "^8.3.0"
   },
   "release-it": {
