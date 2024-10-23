@@ -44,7 +44,7 @@
     "commit": "commit/cli.js",
     "dev": "ts-node ./src/index.ts",
     "husky": "husky init",
-    "lint": "eslint --cache .ts ./src",
+    "lint": "eslint --cache ./src",
     "prepare": "husky",
     "release": "release-it",
     "test": "echo 'No tests yet'",
@@ -52,21 +52,27 @@
     "update": "npx npm-check-updates"
   },
   "dependencies": {
-    "@swc/core": "^1.7.36",
-    "eslint": "^9.13.0",
-    "npm-check-updates": "^17.1.4",
-    "paseto": "^3.1.4",
-    "typescript": "^5.6.3"
+    "paseto": "^3.1.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
-    "@release-it/conventional-changelog": "^9.0.1",
+    "@release-it/conventional-changelog": "^9.0.0",
+    "@swc/core": "^1.7.36",
+    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@typescript-eslint/parser": "^8.11.0",
     "commitizen": "^4.3.1",
     "commitlint": "^19.5.0",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-sonarjs": "^2.0.4",
     "husky": "^9.1.6",
+    "npm-check-updates": "^17.1.4",
     "release-it": "^17.10.0",
-    "tsup": "^8.3.0"
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
   },
   "release-it": {
     "git": {
