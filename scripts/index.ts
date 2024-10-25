@@ -1,8 +1,6 @@
-/* eslint-disable unicorn/no-process-exit */
-
-import { PaymentInstructionsBuilder } from "../payment-instruction";
-import { CoinCode, InstructionPayload, NetworkCode } from "../types";
-import { PasetoV4Handler } from "../utils";
+import { PaymentInstructionsBuilder } from "../src/payment-instruction";
+import { CoinCode, InstructionPayload, NetworkCode } from "../src/types";
+import { PasetoV4Handler } from "../src/utils";
 async function main() {
   console.log("start script");
 
