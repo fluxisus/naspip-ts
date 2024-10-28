@@ -18,6 +18,13 @@ module.exports = [
   eslintPluginPrettierRecommended,
   sonarjsPlugin.configs.recommended,
   {
+    "files": ["test/**/*"],
+    "plugins": ["jest"],
+    "env": {
+      "jest/globals": true
+    }
+  },
+  {
     files: ["**/*.js", "**/*.ts"],
     plugins,
     rules: {
@@ -54,6 +61,7 @@ module.exports = [
     ignores: [
       "eslint.config.js",
       "tsup.config.ts",
+      "jest.config.ts",
       "script/**/*",
       "commitlint.config.js",
     ],
