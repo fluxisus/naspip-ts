@@ -4,11 +4,13 @@ import {
 } from "../src/payment-instruction";
 import { CoinCode, InstructionPayload, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
+
 async function main() {
   console.log("start script");
+
   const issuer = "https://example.com";
 
-  const reader = new PaymentInstructionsReader(issuer);
+  const reader = new PaymentInstructionsReader();
 
   const { publicKey, secretKey } = await PasetoV4Handler.generateKey("public", {
     format: "paserk",
@@ -50,7 +52,11 @@ async function main() {
   });
   console.log("payload valid and token created:", { qrCrypto });
 
-  const data = await reader.read(qrCrypto, publicKey);
+  const data = await reader.readPaymentInstructionToken({
+    qrCrypto,
+    publicKey,
+    issuerDomain: issuer,
+  });
 
   console.log(JSON.stringify(data, null, 2));
 }

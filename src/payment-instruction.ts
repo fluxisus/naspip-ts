@@ -5,24 +5,18 @@ import { CoinCode, InstructionPayload, NetworkCode } from "./types";
 import { biggerThanZero, PasetoV4Handler } from "./utils";
 
 /**
- * Valida el payload de la instrucción de pago
- *
- * @param privateKey - string
+ * Class to handle payment instruction token (paseto v4) creation with payload validation
  *
  * @returns
  * `PaymentInstructionsBuilder`
  *
  * @example
  * ```ts
- * const privateKey = "your_private_key_here";
- * const builder = new PaymentInstructionsBuilder({ privateKey });
+ * const builder = new PaymentInstructionsBuilder();
  * ```
  */
 
 export class PaymentInstructionsBuilder {
-  /*
-
-*/
   private pasetoHandler: PasetoV4Handler;
 
   constructor() {
@@ -30,9 +24,9 @@ export class PaymentInstructionsBuilder {
   }
 
   /**
-   * Create a payment instruction
+   * Create a payment instruction token
    *
-   * @param params - { payload: InstructionPayload; secretKey: string; issuerDomain: string; }
+   * @param parameters - { payload: InstructionPayload; secretKey: string; issuerDomain: string; }
    *
    * @returns
    * `{ token: string; }`
@@ -40,21 +34,30 @@ export class PaymentInstructionsBuilder {
    *
    * @example
    * ```ts
-   * const builder = new PaymentInstructionsBuilder({ privateKey: "..." });
+   * const builder = new PaymentInstructionsBuilder();
+   
+  * const secretKey = "...";
+   * const issuerDomain = "qrCrypto.com";
+   * const keyId = "key-id-one";
    *
    * builder.createPaymentInstructionToken({
-   *   payment: {
-   *     id: "id",
-   *     address: "string",
-   *     network_code: NetworkCode.TRON,
-   *     coin_code: CoinCode.TRON_USDT,
-   *     is_open: true,
+   *   payload: {
+   *     payment: {
+   *       id: "payment-id",
+   *       address: "crypto-address",
+   *       network_code: NetworkCode.TRON,
+   *       coin_code: CoinCode.TRON_USDT,
+   *       is_open: true,
+   *     },
    *   },
+   *   secretKey,
+   *   issuerDomain,
+   *   keyId,
    * });
    *
    * returns
    * {
-   *   token: "string",
+   *   token: "qr-crypto.v4.public....",
    * }
    *
    * ```
@@ -70,7 +73,7 @@ export class PaymentInstructionsBuilder {
       audience?: string;
     };
   }) {
-    this.validateParams(parameters);
+    this.validatePayload(parameters.payload);
 
     if (!parameters.options?.expiresIn) {
       console.warn("expiresIn not provided. Using default '10 minutes' value");
@@ -97,7 +100,7 @@ export class PaymentInstructionsBuilder {
    * @param payload - InstructionPayload
    *
    * @returns
-   * `void`
+   * `void` | `Error`
    *
    * @example
    * ```ts
@@ -105,8 +108,8 @@ export class PaymentInstructionsBuilder {
    *
    * builder.validatePayload({
    *   payment: {
-   *     id: "id",
-   *     address: "string",
+   *     id: "payment-id",
+   *     address: "crypto-address",
    *     network_code: NetworkCode.TRON,
    *     coin_code: CoinCode.TRON_USDT,
    *     is_open: true,
@@ -119,34 +122,18 @@ export class PaymentInstructionsBuilder {
     if (errors) {
       throw new Error("Invalid payload:", { cause: errors });
     }
+
+    if (payload.payment.is_open && !payload.payment.amount) {
+      throw new Error("payment.amount is required when is_open is true");
+    }
   }
 
   /**
-   * Validate the parameters of the payment instruction
+   * Payload schema
    *
-   * @param params - { secretKey: string; issuerDomain: string; payload: InstructionPayload; }
+   * @private
    *
-   * @returns
-   * `void`
    */
-  private validateParams(parameters: {
-    secretKey: string;
-    issuerDomain: string;
-    keyId: string;
-    payload: InstructionPayload;
-  }) {
-    if (!parameters.secretKey) {
-      throw new Error("secretKey is required");
-    }
-    if (!parameters.issuerDomain) {
-      throw new Error("issuerDomain is required");
-    }
-    if (!parameters.keyId) {
-      throw new Error("keyId is required");
-    }
-    this.validatePayload(parameters.payload);
-  }
-
   private payloadSchema = superstruct.object({
     payment: superstruct.object({
       id: superstruct.string(),
@@ -214,40 +201,52 @@ export class PaymentInstructionsBuilder {
   });
 }
 
+/**
+ * Class to handle payment instruction token (paseto v4) reading
+ *
+ * @returns PaymentInstructionsReader
+ *
+ * @example
+ * ```ts
+ * const reader = new PaymentInstructionsReader();
+ * ```
+ */
 export class PaymentInstructionsReader {
   private pasetoHandler: PasetoV4Handler;
 
-  constructor(private issuerDomain: string) {
+  constructor() {
     this.pasetoHandler = new PasetoV4Handler();
   }
 
   /**
-   * Read a qr crypto payment instruction
+   * Read a QR-Crypto payment instruction
    *
-   * @param qrCrypto - QR Crypto string
+   * @param qrCrypto - QR-Crypto token string
    * @param publicKey - string
    * @param options - ConsumeOptions<true> (optional)
    *
    * @returns
-   * `{
+   * ```json{
    *    payload: CompleteResult<InstructionPayload>;
    *    footer?: Buffer | Record<string, any>;
    *    version: "v4";
    *    purpose: "public";
-   *  }`
+   *  }```
    *
    *
    * @example
    * ```ts
-   * const reader = new PaymentInstructionsReader("qrCrypto.com");
+   * const reader = new PaymentInstructionsReader();
    *
-   * reader.read(
-   *    "qr-crypto.v4.public....",
-   *    "some-public-key",
-   *    { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
-   * );
+   * reader.read({
+   *    qrCrypto: "qr-crypto.v4.public....",
+   *    publicKey: "some-public-key",
+   *    issuerDomain: "qrCrypto.com",
+   *    options: { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
+   * });
    *
    * returns
+   * ```ts
    * {
    *   version: "v4",
    *   purpose: "public",
@@ -264,26 +263,30 @@ export class PaymentInstructionsReader {
    *    aud: "payer-crypto.com"
    *   }
    * }
-   *
    * ```
    */
-  public read(
-    qrCrypto: string,
-    publicKey: string,
-    options?: ConsumeOptions<true>
-  ) {
-    const isValidQr = qrCrypto.startsWith("qr-crypto.");
+  public async readPaymentInstructionToken(parameters: {
+    qrCrypto: string;
+    publicKey: string;
+    issuerDomain: string;
+    options?: ConsumeOptions<true>;
+  }) {
+    const isValidQr = parameters.qrCrypto.startsWith("qr-crypto.");
     if (!isValidQr) {
-      throw new Error("Invalid QR Crypto");
+      throw new Error("Invalid QR-Crypto token");
     }
 
-    const token = qrCrypto.slice(10);
+    const token = parameters.qrCrypto.slice(10);
 
-    return this.pasetoHandler.verify<InstructionPayload>(token, publicKey, {
-      ...options,
-      complete: true,
-      ignoreExp: false,
-      issuer: this.issuerDomain,
-    });
+    return this.pasetoHandler.verify<InstructionPayload>(
+      token,
+      parameters.publicKey,
+      {
+        ...parameters.options,
+        complete: true,
+        ignoreExp: false,
+        issuer: parameters.issuerDomain,
+      }
+    );
   }
 }
