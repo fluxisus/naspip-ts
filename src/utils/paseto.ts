@@ -89,11 +89,11 @@ export class PasetoV4Handler {
     return V4.sign(payload, privateKey, options);
   }
 
-  public async verify(
+  public async verify<Payload>(
     token: string,
     publicKey: string,
     options?: ConsumeOptions<true>,
   ) {
-    return V4.verify(token, publicKey, options);
+    return V4.verify<Payload>(token, publicKey, options);
   }
 }

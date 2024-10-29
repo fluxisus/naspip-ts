@@ -1,9 +1,8 @@
+import { ConsumeOptions } from "paseto";
 import * as superstruct from "superstruct";
 
 import { CoinCode, InstructionPayload, NetworkCode } from "./types";
-import { PasetoV4Handler } from "./utils";
-
-const biggerThanZero = (value: string) => parseFloat(value) > 0;
+import { biggerThanZero, PasetoV4Handler } from "./utils";
 
 /**
  * Valida el payload de la instrucción de pago
@@ -74,16 +73,24 @@ export class PaymentInstructionsBuilder {
     payload: InstructionPayload,
     options?: {
       expiresIn?: string;
+      subject?: string;
+      audience?: string;
     },
   ) {
     this.validatePayload(payload);
-    return this.pasetoHandler.sign(payload, this.privateKey, {
-      issuer: this.issuerDomain,
-      expiresIn: options?.expiresIn ?? "10m",
-      footer: {
-        key_id: this.keyId,
+    const pasetoToken = await this.pasetoHandler.sign(
+      { data: payload },
+      this.privateKey,
+      {
+        issuer: this.issuerDomain,
+        expiresIn: options?.expiresIn ?? "10m",
+        kid: this.keyId,
+        subject: options?.subject,
+        audience: options?.audience,
       },
-    });
+    );
+
+    return `qr-crypto.${pasetoToken}`;
   }
 
   /**
@@ -109,7 +116,6 @@ export class PaymentInstructionsBuilder {
    * });
    * ```
    */
-
   public validatePayload(payload: InstructionPayload) {
     const [errors] = superstruct.validate(payload, this.payloadSchema);
     if (errors) {
@@ -182,4 +188,78 @@ export class PaymentInstructionsBuilder {
       }),
     ),
   });
+}
+
+export class PaymentInstructionsReader {
+  private pasetoHandler: PasetoV4Handler;
+
+  constructor(private issuerDomain: string) {
+    this.pasetoHandler = new PasetoV4Handler();
+  }
+
+  /**
+   * Read a qr crypto payment instruction
+   *
+   * @param qrCrypto - QR Crypto string
+   * @param publicKey - string
+   * @param options - ConsumeOptions<true> (optional)
+   *
+   * @returns
+   * `{
+   *    payload: CompleteResult<InstructionPayload>;
+   *    footer?: Buffer | Record<string, any>;
+   *    version: "v4";
+   *    purpose: "public";
+   *  }`
+   *
+   *
+   * @example
+   * ```ts
+   * const reader = new PaymentInstructionsReader("qrCrypto.com");
+   *
+   * reader.read(
+   *    "qr-crypto.v4.public....",
+   *    "some-public-key",
+   *    { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
+   * );
+   *
+   * returns
+   * {
+   *   version: "v4",
+   *   purpose: "public",
+   *   payload: {
+   *    data: {
+   *      payment: {...},
+   *      order: {....}
+   *    },
+   *    iss: "qrCrypto.com",
+   *    iat: "2024-10-29T21:17:00.000Z",
+   *    exp: "2024-10-29T21:25:00.000Z",
+   *    kid: "some-kid",
+   *    sub: "customer@qrCrypto.com",
+   *    aud: "payer-crypto.com"
+   *   }
+   * }
+   *
+   * ```
+   */
+  public read(
+    qrCrypto: string,
+    publicKey: string,
+    options?: ConsumeOptions<true>,
+  ) {
+    const isValidQr = qrCrypto.startsWith("qr-crypto.");
+    if (!isValidQr) {
+      throw new Error("Invalid QR Crypto");
+    }
+
+    const token = qrCrypto.slice(10);
+
+    return this.pasetoHandler.verify<InstructionPayload>(token, publicKey, {
+      ...options,
+      complete: true,
+      ignoreExp: false,
+      issuer: this.issuerDomain,
+    });
+  }
 }
