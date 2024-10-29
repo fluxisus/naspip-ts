@@ -1,10 +1,14 @@
-import { PaymentInstructionsBuilder } from "../src/payment-instruction";
+import {
+  PaymentInstructionsBuilder,
+  PaymentInstructionsReader,
+} from "../src/payment-instruction";
 import { CoinCode, InstructionPayload, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 async function main() {
   console.log("start script");
+  const issuer = "https://example.com";
 
-  const cpsp = new PasetoV4Handler();
+  const reader = new PaymentInstructionsReader(issuer);
 
   const { publicKey, secretKey } = await PasetoV4Handler.generateKey("public", {
     format: "paserk",
@@ -14,7 +18,7 @@ async function main() {
 
   const builder = new PaymentInstructionsBuilder({
     privateKey: secretKey,
-    issuerDomain: "https://example.com",
+    issuerDomain: issuer,
     keyId: "key-id-one",
   });
   const payload: InstructionPayload = {
@@ -42,16 +46,12 @@ async function main() {
       },
     },
   };
-  const pasetoToken = await builder.createPaymentInstructionToken(payload);
-  console.log("payload valid and token created:", { pasetoToken });
+  const qrCrypto = await builder.createPaymentInstructionToken(payload);
+  console.log("payload valid and token created:", { qrCrypto });
 
-  const decodedToken = cpsp.decode(pasetoToken);
+  const data = await reader.read(qrCrypto, publicKey);
 
-  console.log(JSON.stringify(decodedToken, null, 2));
-
-  const tokenVerification = await cpsp.verify(pasetoToken, publicKey);
-
-  console.log({ tokenVerification });
+  console.log(JSON.stringify(data, null, 2));
 }
 
 void main()
