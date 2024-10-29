@@ -16,11 +16,7 @@ async function main() {
 
   console.log({ publicKey, secretKey });
 
-  const builder = new PaymentInstructionsBuilder({
-    privateKey: secretKey,
-    issuerDomain: issuer,
-    keyId: "key-id-one",
-  });
+  const builder = new PaymentInstructionsBuilder();
   const payload: InstructionPayload = {
     payment: {
       id: "id",
@@ -46,7 +42,12 @@ async function main() {
       },
     },
   };
-  const qrCrypto = await builder.createPaymentInstructionToken(payload);
+  const qrCrypto = await builder.createPaymentInstructionToken({
+    payload,
+    secretKey,
+    issuerDomain: issuer,
+    keyId: "key-id-one",
+  });
   console.log("payload valid and token created:", { qrCrypto });
 
   const data = await reader.read(qrCrypto, publicKey);

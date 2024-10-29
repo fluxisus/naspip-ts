@@ -24,25 +24,15 @@ export class PaymentInstructionsBuilder {
 
 */
   private pasetoHandler: PasetoV4Handler;
-  private privateKey: string;
-  private issuerDomain: string;
-  private keyId: string;
 
-  constructor(data: {
-    privateKey: string;
-    issuerDomain: string;
-    keyId: string;
-  }) {
+  constructor() {
     this.pasetoHandler = new PasetoV4Handler();
-    this.privateKey = data.privateKey;
-    this.issuerDomain = data.issuerDomain;
-    this.keyId = data.keyId;
   }
 
   /**
    * Create a payment instruction
    *
-   * @param payload - InstructionPayload
+   * @param params - { payload: InstructionPayload; secretKey: string; issuerDomain: string; }
    *
    * @returns
    * `{ token: string; }`
@@ -69,25 +59,33 @@ export class PaymentInstructionsBuilder {
    *
    * ```
    */
-  public async createPaymentInstructionToken(
-    payload: InstructionPayload,
+  public async createPaymentInstructionToken(parameters: {
+    payload: InstructionPayload;
+    secretKey: string;
+    issuerDomain: string;
+    keyId: string;
     options?: {
       expiresIn?: string;
       subject?: string;
       audience?: string;
-    },
-  ) {
-    this.validatePayload(payload);
+    };
+  }) {
+    this.validateParams(parameters);
+
+    if (!parameters.options?.expiresIn) {
+      console.warn("expiresIn not provided. Using default '10 minutes' value");
+    }
+
     const pasetoToken = await this.pasetoHandler.sign(
-      { data: payload },
-      this.privateKey,
+      parameters.payload,
+      parameters.secretKey,
       {
-        issuer: this.issuerDomain,
-        expiresIn: options?.expiresIn ?? "10m",
-        kid: this.keyId,
-        subject: options?.subject,
-        audience: options?.audience,
-      },
+        issuer: parameters.issuerDomain,
+        expiresIn: parameters.options?.expiresIn ?? "10m",
+        kid: parameters.keyId,
+        subject: parameters.options?.subject,
+        audience: parameters.options?.audience,
+      }
     );
 
     return `qr-crypto.${pasetoToken}`;
@@ -123,6 +121,32 @@ export class PaymentInstructionsBuilder {
     }
   }
 
+  /**
+   * Validate the parameters of the payment instruction
+   *
+   * @param params - { secretKey: string; issuerDomain: string; payload: InstructionPayload; }
+   *
+   * @returns
+   * `void`
+   */
+  private validateParams(parameters: {
+    secretKey: string;
+    issuerDomain: string;
+    keyId: string;
+    payload: InstructionPayload;
+  }) {
+    if (!parameters.secretKey) {
+      throw new Error("secretKey is required");
+    }
+    if (!parameters.issuerDomain) {
+      throw new Error("issuerDomain is required");
+    }
+    if (!parameters.keyId) {
+      throw new Error("keyId is required");
+    }
+    this.validatePayload(parameters.payload);
+  }
+
   private payloadSchema = superstruct.object({
     payment: superstruct.object({
       id: superstruct.string(),
@@ -132,13 +156,13 @@ export class PaymentInstructionsBuilder {
       coin_code: superstruct.enums(Object.values(CoinCode)),
       is_open: superstruct.boolean(),
       amount: superstruct.optional(
-        superstruct.refine(superstruct.string(), "amount", biggerThanZero),
+        superstruct.refine(superstruct.string(), "amount", biggerThanZero)
       ),
       min_amount: superstruct.optional(
-        superstruct.refine(superstruct.string(), "min_amount", biggerThanZero),
+        superstruct.refine(superstruct.string(), "min_amount", biggerThanZero)
       ),
       max_amount: superstruct.optional(
-        superstruct.refine(superstruct.string(), "max_amount", biggerThanZero),
+        superstruct.refine(superstruct.string(), "max_amount", biggerThanZero)
       ),
     }),
     order: superstruct.optional(
@@ -146,7 +170,7 @@ export class PaymentInstructionsBuilder {
         total_amount: superstruct.refine(
           superstruct.string(),
           "total_amount",
-          biggerThanZero,
+          biggerThanZero
         ),
         coin_code: superstruct.enums(Object.values(CoinCode)),
         description: superstruct.optional(superstruct.string()),
@@ -158,26 +182,26 @@ export class PaymentInstructionsBuilder {
               amount: superstruct.refine(
                 superstruct.string(),
                 "amount",
-                biggerThanZero,
+                biggerThanZero
               ),
               unit_price: superstruct.optional(
                 superstruct.refine(
                   superstruct.string(),
                   "unit_price",
-                  biggerThanZero,
-                ),
+                  biggerThanZero
+                )
               ),
               quantity: superstruct.refine(
                 superstruct.number(),
                 "quantity",
-                (value) => value > 0,
+                (value) => value > 0
               ),
               coin_code: superstruct.enums(Object.values(CoinCode)),
               image_url: superstruct.optional(superstruct.string()),
-            }),
+            })
           ),
           "items",
-          (value) => value.length > 0,
+          (value) => value.length > 0
         ),
         merchant: superstruct.object({
           name: superstruct.string(),
@@ -185,7 +209,7 @@ export class PaymentInstructionsBuilder {
           tax_id: superstruct.optional(superstruct.string()),
           image_url: superstruct.optional(superstruct.string()),
         }),
-      }),
+      })
     ),
   });
 }
@@ -246,7 +270,7 @@ export class PaymentInstructionsReader {
   public read(
     qrCrypto: string,
     publicKey: string,
-    options?: ConsumeOptions<true>,
+    options?: ConsumeOptions<true>
   ) {
     const isValidQr = qrCrypto.startsWith("qr-crypto.");
     if (!isValidQr) {
