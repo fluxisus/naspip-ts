@@ -5,8 +5,9 @@ import { CoinCode, InstructionPayload, NetworkCode } from "./types";
 import { biggerThanZero, PasetoV4Handler } from "./utils";
 
 /**
- * Class to handle payment instruction token (paseto v4) creation with payload validation
+ * Class to handle payment instruction token (qr-crypto token) creation with payload validation
  *
+ * @param issuerDomain - string
  * @returns
  * `PaymentInstructionsBuilder`
  *
@@ -19,28 +20,28 @@ import { biggerThanZero, PasetoV4Handler } from "./utils";
 export class PaymentInstructionsBuilder {
   private pasetoHandler: PasetoV4Handler;
 
-  constructor() {
+  constructor(private issuerDomain: string) {
     this.pasetoHandler = new PasetoV4Handler();
   }
 
   /**
-   * Create a payment instruction token
+   * Create a QR-Crypto payment instruction token
    *
-   * @param parameters - { payload: InstructionPayload; secretKey: string; issuerDomain: string; }
+   * @param parameters - { payload: InstructionPayload; secretKey: string; }
    *
    * @returns
-   * `{ token: string; }`
+   * `string`
    *
    *
    * @example
    * ```ts
-   * const builder = new PaymentInstructionsBuilder();
-   
-  * const secretKey = "...";
    * const issuerDomain = "qrCrypto.com";
+   * const builder = new PaymentInstructionsBuilder(issuerDomain);
+   *
+   * const secretKey = "...";
    * const keyId = "key-id-one";
    *
-   * builder.createPaymentInstructionToken({
+   * builder.create({
    *   payload: {
    *     payment: {
    *       id: "payment-id",
@@ -56,16 +57,13 @@ export class PaymentInstructionsBuilder {
    * });
    *
    * returns
-   * {
-   *   token: "qr-crypto.v4.public....",
-   * }
-   *
+   * ```ts
+   * "qr-crypto.v4.public...."
    * ```
    */
-  public async createPaymentInstructionToken(parameters: {
+  public async create(parameters: {
     payload: InstructionPayload;
     secretKey: string;
-    issuerDomain: string;
     keyId: string;
     options?: {
       expiresIn?: string;
@@ -83,7 +81,7 @@ export class PaymentInstructionsBuilder {
       parameters.payload,
       parameters.secretKey,
       {
-        issuer: parameters.issuerDomain,
+        issuer: this.issuerDomain,
         expiresIn: parameters.options?.expiresIn ?? "10m",
         kid: parameters.keyId,
         subject: parameters.options?.subject,
@@ -104,7 +102,7 @@ export class PaymentInstructionsBuilder {
    *
    * @example
    * ```ts
-   * const builder = new PaymentInstructionsBuilder({ privateKey: "..." });
+   * const builder = new PaymentInstructionsBuilder();
    *
    * builder.validatePayload({
    *   payment: {
@@ -123,7 +121,7 @@ export class PaymentInstructionsBuilder {
       throw new Error("Invalid payload:", { cause: errors });
     }
 
-    if (payload.payment.is_open && !payload.payment.amount) {
+    if (!payload.payment.is_open && !payload.payment.amount) {
       throw new Error("payment.amount is required when is_open is true");
     }
   }
@@ -202,7 +200,7 @@ export class PaymentInstructionsBuilder {
 }
 
 /**
- * Class to handle payment instruction token (paseto v4) reading
+ * Class to handle payment instruction token (qr-crypto token) reading
  *
  * @returns PaymentInstructionsReader
  *
@@ -265,7 +263,7 @@ export class PaymentInstructionsReader {
    * }
    * ```
    */
-  public async readPaymentInstructionToken(parameters: {
+  public async read(parameters: {
     qrCrypto: string;
     publicKey: string;
     issuerDomain: string;

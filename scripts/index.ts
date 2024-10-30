@@ -44,7 +44,7 @@ async function main() {
       },
     },
   };
-  const qrCrypto = await builder.createPaymentInstructionToken({
+  const qrCrypto = await builder.create({
     payload,
     secretKey,
     issuerDomain: issuer,
@@ -52,7 +52,7 @@ async function main() {
   });
   console.log("payload valid and token created:", { qrCrypto });
 
-  const data = await reader.readPaymentInstructionToken({
+  const data = await reader.read({
     qrCrypto,
     publicKey,
     issuerDomain: issuer,
