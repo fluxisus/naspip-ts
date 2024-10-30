@@ -17,6 +17,7 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": false,
+    "noEmit": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "exactOptionalPropertyTypes": false,
@@ -34,8 +35,6 @@
     "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
-    "declarationDir": "@types/crypto-payments-standard",
-    "outDir": "./dist"
   },
   "include": ["src"]
 }
