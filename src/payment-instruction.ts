@@ -86,7 +86,7 @@ export class PaymentInstructionsBuilder {
         kid: parameters.keyId,
         subject: parameters.options?.subject,
         audience: parameters.options?.audience,
-      }
+      },
     );
 
     return `qr-crypto.${pasetoToken}`;
@@ -141,13 +141,13 @@ export class PaymentInstructionsBuilder {
       coin_code: superstruct.enums(Object.values(CoinCode)),
       is_open: superstruct.boolean(),
       amount: superstruct.optional(
-        superstruct.refine(superstruct.string(), "amount", biggerThanZero)
+        superstruct.refine(superstruct.string(), "amount", biggerThanZero),
       ),
       min_amount: superstruct.optional(
-        superstruct.refine(superstruct.string(), "min_amount", biggerThanZero)
+        superstruct.refine(superstruct.string(), "min_amount", biggerThanZero),
       ),
       max_amount: superstruct.optional(
-        superstruct.refine(superstruct.string(), "max_amount", biggerThanZero)
+        superstruct.refine(superstruct.string(), "max_amount", biggerThanZero),
       ),
     }),
     order: superstruct.optional(
@@ -155,7 +155,7 @@ export class PaymentInstructionsBuilder {
         total_amount: superstruct.refine(
           superstruct.string(),
           "total_amount",
-          biggerThanZero
+          biggerThanZero,
         ),
         coin_code: superstruct.enums(Object.values(CoinCode)),
         description: superstruct.optional(superstruct.string()),
@@ -167,26 +167,26 @@ export class PaymentInstructionsBuilder {
               amount: superstruct.refine(
                 superstruct.string(),
                 "amount",
-                biggerThanZero
+                biggerThanZero,
               ),
               unit_price: superstruct.optional(
                 superstruct.refine(
                   superstruct.string(),
                   "unit_price",
-                  biggerThanZero
-                )
+                  biggerThanZero,
+                ),
               ),
               quantity: superstruct.refine(
                 superstruct.number(),
                 "quantity",
-                (value) => value > 0
+                (value) => value > 0,
               ),
               coin_code: superstruct.enums(Object.values(CoinCode)),
               image_url: superstruct.optional(superstruct.string()),
-            })
+            }),
           ),
           "items",
-          (value) => value.length > 0
+          (value) => value.length > 0,
         ),
         merchant: superstruct.object({
           name: superstruct.string(),
@@ -194,7 +194,7 @@ export class PaymentInstructionsBuilder {
           tax_id: superstruct.optional(superstruct.string()),
           image_url: superstruct.optional(superstruct.string()),
         }),
-      })
+      }),
     ),
   });
 }
@@ -284,7 +284,7 @@ export class PaymentInstructionsReader {
         complete: true,
         ignoreExp: false,
         issuer: parameters.issuerDomain,
-      }
+      },
     );
   }
 }
