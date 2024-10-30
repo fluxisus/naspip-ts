@@ -1,4 +1,7 @@
-import { PaymentInstructionsBuilder, PaymentInstructionsReader } from "../src";
+import {
+  PaymentInstructionsBuilder,
+  PaymentInstructionsReader,
+} from "../src/payment-instruction";
 import { CoinCode, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
