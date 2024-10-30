@@ -18,7 +18,7 @@ async function main() {
 
   console.log({ publicKey, secretKey });
 
-  const builder = new PaymentInstructionsBuilder();
+  const builder = new PaymentInstructionsBuilder(issuer);
   const payload: InstructionPayload = {
     payment: {
       id: "id",
@@ -47,7 +47,6 @@ async function main() {
   const qrCrypto = await builder.create({
     payload,
     secretKey,
-    issuerDomain: issuer,
     keyId: "key-id-one",
   });
   console.log("payload valid and token created:", { qrCrypto });
