@@ -1,6 +1,13 @@
 export enum NetworkCode {
-  TRON = "TRON",
+  BSC = "BSC",
+  BITCOIN = "BITCOIN",
+  ERC20 = "ERC20",
+  LIGHTNING = "LIGHTNING",
+  LITECOIN = "LITECOIN",
   POLYGON = "POLYGON",
+  SOLANA = "SOLANA",
+  TRON = "TRON",
+  STELLAR = "STELLAR",
 }
 
 export enum CoinCode {
