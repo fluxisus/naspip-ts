@@ -61,20 +61,23 @@ export class PaymentInstructionsBuilder {
    * "qr-crypto.v4.public...."
    * ```
    */
-  public async create(parameters: {
-    payload: InstructionPayload;
-    secretKey: string;
-    keyId: string;
-    options?: {
-      expiresIn?: string;
-      subject?: string;
-      audience?: string;
-    };
-  }) {
-    this.validatePayload(parameters.payload);
+  public async create(
+    parameters: {
+      payload: InstructionPayload;
+      secretKey: string;
+      keyId: string;
+      options?: {
+        expiresIn?: string;
+        subject?: string;
+        audience?: string;
+      };
+    },
+    warnings = true,
+  ) {
+    this.validateParameters(parameters);
 
-    if (!parameters.options?.expiresIn) {
-      console.warn("expiresIn not provided. Using default '10 minutes' value");
+    if (warnings && !parameters.options?.expiresIn) {
+      console.warn("expiresIn not provided. It is recommended to set an expiration time.");
     }
 
     const pasetoToken = await this.pasetoHandler.sign(
@@ -82,7 +85,7 @@ export class PaymentInstructionsBuilder {
       parameters.secretKey,
       {
         issuer: this.issuerDomain,
-        expiresIn: parameters.options?.expiresIn ?? "10m",
+        expiresIn: parameters.options?.expiresIn,
         kid: parameters.keyId,
         subject: parameters.options?.subject,
         audience: parameters.options?.audience,
@@ -124,6 +127,18 @@ export class PaymentInstructionsBuilder {
     if (!payload.payment.is_open && !payload.payment.amount) {
       throw new Error("payment.amount is required when is_open is true");
     }
+  }
+
+  private validateParameters({ payload, secretKey, keyId }) {
+    if (!secretKey) {
+      throw new Error("secretKey is required");
+    }
+
+    if (!keyId) {
+      throw new Error("keyId is required");
+    }
+
+    this.validatePayload(payload);
   }
 
   /**
