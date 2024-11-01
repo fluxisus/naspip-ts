@@ -28,6 +28,7 @@ module.exports = [
     files: ["**/*.js", "**/*.ts"],
     plugins,
     rules: {
+      "no-undef": "off",
       "no-return-await": "off",
       "@typescript-eslint/return-await": "off",
       "@typescript-eslint/no-explicit-any": "off",
