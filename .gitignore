@@ -1,7 +1,6 @@
 node_modules/
 .DS_Store
 .husky
-dist
 .eslintcache
 *.tsbuildinfo
 commit

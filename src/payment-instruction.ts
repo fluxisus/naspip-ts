@@ -77,7 +77,9 @@ export class PaymentInstructionsBuilder {
     this.validateParameters(parameters);
 
     if (warnings && !parameters.options?.expiresIn) {
-      console.warn("expiresIn not provided. It is recommended to set an expiration time.");
+      console.warn(
+        "expiresIn not provided. It is recommended to set an expiration time.",
+      );
     }
 
     const pasetoToken = await this.pasetoHandler.sign(
