@@ -2,7 +2,14 @@ import { ConsumeOptions } from "paseto";
 import * as superstruct from "superstruct";
 
 import { CoinCode, InstructionPayload, NetworkCode } from "./types";
-import { biggerThanZero, PasetoV4Handler } from "./utils";
+import {
+  biggerThanZero,
+  InvalidPayload,
+  InvalidQrCryptoToken,
+  MissingKeyId,
+  MissingSecretKey,
+  PasetoV4Handler,
+} from "./utils";
 
 /**
  * Class to handle payment instruction token (qr-crypto token) creation with payload validation
@@ -78,7 +85,7 @@ export class PaymentInstructionsBuilder {
 
     if (warnings && !parameters.options?.expiresIn) {
       console.warn(
-        "expiresIn not provided. It is recommended to set an expiration time.",
+        "\x1b[33m[WARNING]\x1b[0m: Field 'expiresIn' not provided in QR-Crypto token creation. It is recommended to set an expiration time.",
       );
     }
 
@@ -123,21 +130,23 @@ export class PaymentInstructionsBuilder {
   public validatePayload(payload: InstructionPayload) {
     const [errors] = superstruct.validate(payload, this.payloadSchema);
     if (errors) {
-      throw new Error("Invalid payload:", { cause: errors });
+      throw new InvalidPayload("Payload does not match the expected schema");
     }
 
     if (!payload.payment.is_open && !payload.payment.amount) {
-      throw new Error("payment.amount is required when is_open is true");
+      throw new InvalidPayload(
+        "payment.amount is required when 'is_open' is true",
+      );
     }
   }
 
   private validateParameters({ payload, secretKey, keyId }) {
     if (!secretKey) {
-      throw new Error("secretKey is required");
+      throw new MissingSecretKey("secretKey is required for token creation");
     }
 
     if (!keyId) {
-      throw new Error("keyId is required");
+      throw new MissingKeyId("keyId is required for token creation");
     }
 
     this.validatePayload(payload);
@@ -288,7 +297,7 @@ export class PaymentInstructionsReader {
   }) {
     const isValidQr = parameters.qrCrypto.startsWith("qr-crypto.");
     if (!isValidQr) {
-      throw new Error("Invalid QR-Crypto token");
+      throw new InvalidQrCryptoToken("invalid 'qr-crypto' token prefix");
     }
 
     const token = parameters.qrCrypto.slice(10);
