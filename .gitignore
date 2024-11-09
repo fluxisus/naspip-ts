@@ -4,4 +4,3 @@ node_modules/
 .eslintcache
 *.tsbuildinfo
 commit
-dist

@@ -88,7 +88,6 @@
       "release": true
     },
     "npm": {
-      "skipChecks": true,
       "publish": false
     },
     "plugins": {
