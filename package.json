@@ -28,8 +28,6 @@
   "module": "./dist/index.mjs",
   "files": [
     "package.json",
-    "LICENSE",
-    "README.md",
     "dist"
   ],
   "exports": {
@@ -40,14 +38,13 @@
     }
   },
   "scripts": {
-    "build": "npm run build:clean && tsup ./src/index.ts --format cjs,esm --dts",
-    "build:clean": "rm -rf dist",
+    "build": "tsup ./src/index.ts --format cjs,esm --dts",
+    "clean": "rm -rf dist",
     "clean-modules": "rm -rf node_modules",
     "commit": "commit/cli.js",
     "dev": "ts-node ./src/index.ts",
     "husky": "husky init",
     "lint": "eslint --cache ./src",
-    "lint:fix": "eslint --cache ./src --fix",
     "prepare": "husky",
     "release": "release-it",
     "test": "jest",
