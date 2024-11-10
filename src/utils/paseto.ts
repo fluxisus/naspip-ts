@@ -37,6 +37,14 @@ export class PasetoV4Handler {
     return V4.generateKey(purpose, options);
   }
 
+  /**
+   * Decode paseto token
+   *
+   * @param token - paseto token
+   * @returns
+   * `{ ...data, footer: string | Record<string, any> }`
+   */
+
   public decode(token: string) {
     const data = decode(token);
 
@@ -89,6 +97,15 @@ export class PasetoV4Handler {
     return V4.sign(payload, privateKey, options);
   }
 
+  /**
+   * Verify paseto token
+   *
+   * @param token - paseto token
+   * @param publicKey - public key as string
+   * @param options - options for paseto v4 algorimth
+   * @returns
+   * Paseto V4 public token format.
+   */
   public async verify<Payload>(
     token: string,
     publicKey: string,
