@@ -1,7 +1,7 @@
 import { ConsumeOptions } from "paseto";
 import * as superstruct from "superstruct";
 
-import { CoinCode, InstructionPayload, NetworkCode } from "./types";
+import { InstructionPayload, NetworkCode } from "./types";
 import {
   biggerThanOrEqualZero,
   biggerThanZero,
@@ -212,7 +212,7 @@ export class PaymentInstructionsBuilder {
                 "quantity",
                 biggerThanZero,
               ),
-              coin_code: superstruct.enums(Object.values(CoinCode)),
+              coin_code: superstruct.string(),
               image_url: superstruct.optional(superstruct.string()),
             }),
           ),

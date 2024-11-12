@@ -258,7 +258,7 @@ var PaymentInstructionsBuilder = class {
           amount: superstruct.refine(superstruct.string(), "amount", biggerThanOrEqualZero),
           unit_price: superstruct.optional(superstruct.refine(superstruct.string(), "unit_price", biggerThanOrEqualZero)),
           quantity: superstruct.refine(superstruct.number(), "quantity", biggerThanZero),
-          coin_code: superstruct.enums(Object.values(CoinCode)),
+          coin_code: superstruct.string(),
           image_url: superstruct.optional(superstruct.string())
         })), "items", (value) => value.length > 0),
         merchant: superstruct.object({
