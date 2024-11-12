@@ -348,7 +348,8 @@ var PaymentInstructionsBuilder = class {
   validatePayload(payload) {
     const [errors] = superstruct.validate(payload, this.payloadSchema);
     if (errors) {
-      throw new InvalidPayload("Payload does not match the expected schema");
+      const [failure] = errors.failures();
+      throw new InvalidPayload(failure?.message ?? "Payload does not match the expected schema");
     }
     if (!payload.payment.is_open && !payload.payment.amount) {
       throw new InvalidPayload("payment.amount is required when 'is_open' is true");
