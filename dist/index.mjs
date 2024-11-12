@@ -147,6 +147,13 @@ var PasetoV4Handler = class {
   static async generateKey(purpose, options) {
     return V4.generateKey(purpose, options);
   }
+  /**
+  * Decode paseto token
+  *
+  * @param token - paseto token
+  * @returns
+  * `{ ...data, footer: string | Record<string, any> }`
+  */
   decode(token) {
     const data = decode(token);
     try {
@@ -196,6 +203,15 @@ var PasetoV4Handler = class {
   async sign(payload, privateKey, options) {
     return V4.sign(payload, privateKey, options);
   }
+  /**
+  * Verify paseto token
+  *
+  * @param token - paseto token
+  * @param publicKey - public key as string
+  * @param options - options for paseto v4 algorimth
+  * @returns
+  * Paseto V4 public token format.
+  */
   async verify(token, publicKey, options) {
     return V4.verify(token, publicKey, options);
   }
@@ -203,9 +219,13 @@ var PasetoV4Handler = class {
 
 // src/utils/validate.ts
 function biggerThanZero(value) {
-  return parseFloat(value) > 0;
+  return parseFloat(value.toString()) > 0;
 }
 __name(biggerThanZero, "biggerThanZero");
+function biggerThanOrEqualZero(value) {
+  return parseFloat(value) >= 0;
+}
+__name(biggerThanOrEqualZero, "biggerThanOrEqualZero");
 
 // src/payment-instruction.ts
 var PaymentInstructionsBuilder = class {
@@ -222,7 +242,7 @@ var PaymentInstructionsBuilder = class {
         address: superstruct.string(),
         address_tag: superstruct.optional(superstruct.string()),
         network_code: superstruct.enums(Object.values(NetworkCode)),
-        coin_code: superstruct.enums(Object.values(CoinCode)),
+        coin_code: superstruct.string(),
         is_open: superstruct.boolean(),
         amount: superstruct.optional(superstruct.refine(superstruct.string(), "amount", biggerThanZero)),
         min_amount: superstruct.optional(superstruct.refine(superstruct.string(), "min_amount", biggerThanZero)),
@@ -230,14 +250,14 @@ var PaymentInstructionsBuilder = class {
       }),
       order: superstruct.optional(superstruct.object({
         total_amount: superstruct.refine(superstruct.string(), "total_amount", biggerThanZero),
-        coin_code: superstruct.enums(Object.values(CoinCode)),
+        coin_code: superstruct.string(),
         description: superstruct.optional(superstruct.string()),
         items: superstruct.refine(superstruct.array(superstruct.object({
           title: superstruct.string(),
           description: superstruct.optional(superstruct.string()),
-          amount: superstruct.refine(superstruct.string(), "amount", biggerThanZero),
-          unit_price: superstruct.optional(superstruct.refine(superstruct.string(), "unit_price", biggerThanZero)),
-          quantity: superstruct.refine(superstruct.number(), "quantity", (value) => value > 0),
+          amount: superstruct.refine(superstruct.string(), "amount", biggerThanOrEqualZero),
+          unit_price: superstruct.optional(superstruct.refine(superstruct.string(), "unit_price", biggerThanOrEqualZero)),
+          quantity: superstruct.refine(superstruct.number(), "quantity", biggerThanZero),
           coin_code: superstruct.enums(Object.values(CoinCode)),
           image_url: superstruct.optional(superstruct.string())
         })), "items", (value) => value.length > 0),
@@ -328,7 +348,8 @@ var PaymentInstructionsBuilder = class {
   validatePayload(payload) {
     const [errors] = superstruct.validate(payload, this.payloadSchema);
     if (errors) {
-      throw new InvalidPayload("Payload does not match the expected schema");
+      const [failure] = errors.failures();
+      throw new InvalidPayload(failure?.message ?? "Payload does not match the expected schema");
     }
     if (!payload.payment.is_open && !payload.payment.amount) {
       throw new InvalidPayload("payment.amount is required when 'is_open' is true");
@@ -421,14 +442,17 @@ var PaymentInstructionsReader = class {
   }
 };
 export {
+  CoinCode,
   InvalidPayload,
   InvalidQrCryptoToken,
   MissingKeyId,
   MissingSecretKey,
+  NetworkCode,
   PasetoV4Handler,
   PayInsError,
   PaymentInstructionsBuilder,
   PaymentInstructionsReader,
+  biggerThanOrEqualZero,
   biggerThanZero,
   getNetworkData
 };

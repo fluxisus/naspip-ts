@@ -3,6 +3,7 @@ import * as superstruct from "superstruct";
 
 import { CoinCode, InstructionPayload, NetworkCode } from "./types";
 import {
+  biggerThanOrEqualZero,
   biggerThanZero,
   InvalidPayload,
   InvalidQrCryptoToken,
@@ -129,8 +130,12 @@ export class PaymentInstructionsBuilder {
    */
   public validatePayload(payload: InstructionPayload) {
     const [errors] = superstruct.validate(payload, this.payloadSchema);
+
     if (errors) {
-      throw new InvalidPayload("Payload does not match the expected schema");
+      const [failure] = errors.failures();
+      throw new InvalidPayload(
+        failure?.message ?? "Payload does not match the expected schema",
+      );
     }
 
     if (!payload.payment.is_open && !payload.payment.amount) {
@@ -164,7 +169,7 @@ export class PaymentInstructionsBuilder {
       address: superstruct.string(),
       address_tag: superstruct.optional(superstruct.string()),
       network_code: superstruct.enums(Object.values(NetworkCode)),
-      coin_code: superstruct.enums(Object.values(CoinCode)),
+      coin_code: superstruct.string(),
       is_open: superstruct.boolean(),
       amount: superstruct.optional(
         superstruct.refine(superstruct.string(), "amount", biggerThanZero),
@@ -183,7 +188,7 @@ export class PaymentInstructionsBuilder {
           "total_amount",
           biggerThanZero,
         ),
-        coin_code: superstruct.enums(Object.values(CoinCode)),
+        coin_code: superstruct.string(),
         description: superstruct.optional(superstruct.string()),
         items: superstruct.refine(
           superstruct.array(
@@ -193,19 +198,19 @@ export class PaymentInstructionsBuilder {
               amount: superstruct.refine(
                 superstruct.string(),
                 "amount",
-                biggerThanZero,
+                biggerThanOrEqualZero,
               ),
               unit_price: superstruct.optional(
                 superstruct.refine(
                   superstruct.string(),
                   "unit_price",
-                  biggerThanZero,
+                  biggerThanOrEqualZero,
                 ),
               ),
               quantity: superstruct.refine(
                 superstruct.number(),
                 "quantity",
-                (value) => value > 0,
+                biggerThanZero,
               ),
               coin_code: superstruct.enums(Object.values(CoinCode)),
               image_url: superstruct.optional(superstruct.string()),

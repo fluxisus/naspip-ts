@@ -265,6 +265,13 @@ declare class PasetoV4Handler {
         secretKey: string;
         publicKey: string;
     }>;
+    /**
+     * Decode paseto token
+     *
+     * @param token - paseto token
+     * @returns
+     * `{ ...data, footer: string | Record<string, any> }`
+     */
     decode(token: string): {
         footer: any;
         payload?: Record<string, unknown> | undefined;
@@ -303,9 +310,19 @@ declare class PasetoV4Handler {
      * Paseto V4 public token format.
      */
     sign(payload: Record<string, any>, privateKey: string, options?: ProduceOptions): Promise<string>;
+    /**
+     * Verify paseto token
+     *
+     * @param token - paseto token
+     * @param publicKey - public key as string
+     * @param options - options for paseto v4 algorimth
+     * @returns
+     * Paseto V4 public token format.
+     */
     verify<Payload>(token: string, publicKey: string, options?: ConsumeOptions<true>): Promise<paseto.CompleteResult<Payload>>;
 }
 
-declare function biggerThanZero(value: string): boolean;
+declare function biggerThanZero(value: string | number): boolean;
+declare function biggerThanOrEqualZero(value: string): boolean;
 
-export { InvalidPayload, InvalidQrCryptoToken, MissingKeyId, MissingSecretKey, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, biggerThanZero, getNetworkData };
+export { CoinCode, type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, type InstructionPayment, InvalidPayload, InvalidQrCryptoToken, MissingKeyId, MissingSecretKey, NetworkCode, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, biggerThanOrEqualZero, biggerThanZero, getNetworkData };
