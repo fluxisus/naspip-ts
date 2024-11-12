@@ -130,8 +130,12 @@ export class PaymentInstructionsBuilder {
    */
   public validatePayload(payload: InstructionPayload) {
     const [errors] = superstruct.validate(payload, this.payloadSchema);
+
     if (errors) {
-      throw new InvalidPayload("Payload does not match the expected schema");
+      const [failure] = errors.failures();
+      throw new InvalidPayload(
+        failure?.message ?? "Payload does not match the expected schema",
+      );
     }
 
     if (!payload.payment.is_open && !payload.payment.amount) {
