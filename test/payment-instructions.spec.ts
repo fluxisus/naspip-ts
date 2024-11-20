@@ -5,16 +5,12 @@ import {
 import { CoinCode, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
-let builder: PaymentInstructionsBuilder;
-let reader: PaymentInstructionsReader;
 let commonKeys: {
   publicKey: string;
   secretKey: string;
 };
 
 beforeAll(async () => {
-  builder = new PaymentInstructionsBuilder("qrCrypto.com");
-  reader = new PaymentInstructionsReader();
   commonKeys = await PasetoV4Handler.generateKey("public", {
     format: "paserk",
   });
@@ -22,110 +18,187 @@ beforeAll(async () => {
 
 describe("Payment Instructions Classes Test", () => {
   test("Should create payment instruction token with valid payload: is_open: true", async () => {
-    const keyId = "key-id-one";
+    const builder = new PaymentInstructionsBuilder();
 
-    const token = await builder.create({
-      payload: {
+    const token = await builder.create(
+      {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_code: NetworkCode.TRON,
-          coin_code: CoinCode.TRON_USDT,
+          network: NetworkCode.TRON,
+          coin: CoinCode.TRON_USDT,
           is_open: true,
         },
       },
-      secretKey: commonKeys.secretKey,
-      keyId,
-      options: {
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
         expiresIn: "5m",
       },
-    });
+    );
 
     expect(token).toBeDefined();
   });
 
   test("Should create payment instruction token with valid payload: is_open: false", async () => {
-    const keyId = "key-id-one";
+    const builder = new PaymentInstructionsBuilder();
 
-    const token = await builder.create({
-      payload: {
+    const token = await builder.create(
+      {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_code: NetworkCode.TRON,
-          coin_code: CoinCode.TRON_USDT,
+          network: NetworkCode.TRON,
+          coin: CoinCode.TRON_USDT,
           is_open: false,
           amount: "100",
         },
       },
-      secretKey: commonKeys.secretKey,
-      keyId,
-      options: {
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
         expiresIn: "5m",
       },
-    });
+    );
+
+    expect(token).toBeDefined();
+  });
+
+  test("Should create url payload token", async () => {
+    const builder = new PaymentInstructionsBuilder();
+
+    const token = await builder.create(
+      {
+        url: "https://www.my-ecommerce.com/checkout?id=lasdh-asdlsa-ads",
+      },
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
+        subject: "my-ecommerce.com",
+        expiresIn: "5m",
+      },
+    );
 
     expect(token).toBeDefined();
   });
 
   test("Should read payment instruction token", async () => {
-    const issuerDomain = "qrCrypto.com";
-    const keyId = "key-id-one";
+    const builder = new PaymentInstructionsBuilder();
 
-    const token = await builder.create({
-      payload: {
+    const token = await builder.create(
+      {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_code: NetworkCode.TRON,
-          coin_code: CoinCode.TRON_USDT,
+          network: NetworkCode.TRON,
+          coin: CoinCode.TRON_USDT,
           is_open: false,
           amount: "100",
         },
       },
-      secretKey: commonKeys.secretKey,
-      keyId,
-      options: {
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
+        subject: "my-ecommerce.com",
         expiresIn: "5m",
       },
-    });
+    );
+
+    const reader = new PaymentInstructionsReader();
 
     const data = await reader.read({
       qrCrypto: token,
       publicKey: commonKeys.publicKey,
-      issuerDomain,
+      options: {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        issuer: "qrCrypto.com",
+      },
     });
 
     expect(data).toBeDefined();
   });
 
   test("Should read payment instruction token with invalid issuer domain and fail", async () => {
-    const keyId = "key-id-one";
+    const builder = new PaymentInstructionsBuilder();
 
-    const token = await builder.create({
-      payload: {
+    const token = await builder.create(
+      {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_code: NetworkCode.TRON,
-          coin_code: CoinCode.TRON_USDT,
+          network: NetworkCode.TRON,
+          coin: CoinCode.TRON_USDT,
           is_open: false,
           amount: "100",
         },
       },
-      secretKey: commonKeys.secretKey,
-      keyId,
-      options: {
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
+        subject: "my-ecommerce.com",
         expiresIn: "5m",
       },
-    });
+    );
+
+    const reader = new PaymentInstructionsReader();
 
     expect(async () => {
       await reader.read({
         qrCrypto: token,
         publicKey: commonKeys.publicKey,
-        issuerDomain: "invalid-issuer-domain.com",
+        options: {
+          keyId: "key-id-one",
+          keyIssuer: "payment-processor.com",
+          issuer: "invalid-issuer-domain.com",
+        },
       });
     }).rejects.toThrow("issuer mismatch");
+  });
+
+  test("Should read url payload token with invalid keyIssuer and fail", async () => {
+    const builder = new PaymentInstructionsBuilder();
+
+    const token = await builder.create(
+      {
+        url: "http://test.com/checkout?id=test-id",
+      },
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
+        subject: "my-ecommerce.com",
+        expiresIn: "5m",
+      },
+    );
+
+    const reader = new PaymentInstructionsReader();
+
+    expect(async () => {
+      await reader.read({
+        qrCrypto: token,
+        publicKey: commonKeys.publicKey,
+        options: {
+          keyIssuer: "other-issuer.com",
+        },
+      });
+    }).rejects.toThrow("Invalid Key Issuer");
   });
 });

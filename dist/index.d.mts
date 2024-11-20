@@ -17,6 +17,9 @@ declare enum CoinCode {
     POLYGON_USDT = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
     POLYGON_USDC = "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
 }
+interface UrlPayload {
+    url: string;
+}
 interface InstructionPayload {
     payment: InstructionPayment;
     order?: InstructionOrder;
@@ -25,8 +28,8 @@ interface InstructionPayment {
     id: string;
     address: string;
     address_tag?: string;
-    network_code: NetworkCode;
-    coin_code: CoinCode;
+    network: NetworkCode;
+    coin: CoinCode;
     is_open: boolean;
     amount?: string;
     min_amount?: string;
@@ -42,23 +45,51 @@ interface InstructionOrder {
     total_amount: string;
     coin_code: string;
     description?: string;
-    items: InstructionItem[];
-    merchant: InstructionMerchant;
+    items?: InstructionItem[];
+    merchant?: InstructionMerchant;
 }
 interface InstructionItem {
     title: string;
     description?: string;
     amount: string;
     unit_price?: string;
-    quantity: number;
+    quantity?: number;
     coin_code: string;
     image_url?: string;
+}
+interface TokenPayload {
+    iss: string;
+    sub?: string;
+    aud?: string;
+    iat: string;
+    exp: string;
+    nbf?: string;
+    jti?: string;
+    kid: string;
+    kep: string;
+    kis: string;
+    payload: InstructionPayload | UrlPayload;
+}
+interface TokenCreateOptions extends TokenPublicKeyOptions {
+    issuer?: string;
+    expiresIn: string;
+    subject?: string;
+    audience?: string;
+}
+interface TokenPublicKeyOptions {
+    keyId: string;
+    keyExpiration: string;
+    keyIssuer: string;
+}
+interface ReadOptions extends ConsumeOptions<true> {
+    keyId?: string;
+    keyIssuer?: string;
+    ignoreKeyExp?: boolean;
 }
 
 /**
  * Class to handle payment instruction token (qr-crypto token) creation with payload validation
  *
- * @param issuerDomain - string
  * @returns
  * `PaymentInstructionsBuilder`
  *
@@ -68,13 +99,15 @@ interface InstructionItem {
  * ```
  */
 declare class PaymentInstructionsBuilder {
-    private issuerDomain;
     private pasetoHandler;
-    constructor(issuerDomain: string);
+    constructor();
     /**
-     * Create a QR-Crypto payment instruction token
+     * Create a QR-Crypto token
      *
-     * @param parameters - { payload: InstructionPayload; secretKey: string; }
+     * @param data - InstructionPayload | UrlPayload;
+     * @param secretKey - string;
+     * @param options - TokenCreateOptions;
+     * @param [warnings=true]
      *
      * @returns
      * `string`
@@ -82,25 +115,26 @@ declare class PaymentInstructionsBuilder {
      *
      * @example
      * ```ts
-     * const issuerDomain = "qrCrypto.com";
-     * const builder = new PaymentInstructionsBuilder(issuerDomain);
+     * const builder = new PaymentInstructionsBuilder();
      *
-     * const secretKey = "...";
-     * const keyId = "key-id-one";
-     *
-     * builder.create({
-     *   payload: {
+     * await builder.create(
+     *   {
      *     payment: {
      *       id: "payment-id",
      *       address: "crypto-address",
-     *       network_code: NetworkCode.TRON,
-     *       coin_code: CoinCode.TRON_USDT,
+     *       network: NetworkCode.TRON,
+     *       coin: CoinCode.TRON_USDT,
      *       is_open: true,
      *     },
      *   },
-     *   secretKey,
-     *   issuerDomain,
-     *   keyId,
+     *   secretKey: "some-private-secret",
+     *   {
+     *     issuer: "client.com",
+     *     expiresIn: "1h",
+     *     keyId: "key-id-one",
+     *     keyExpiration: "2025-12-12T01:00:00.000Z",
+     *     keyIssuer: "my-bussines.com",
+     *   }
      * });
      *
      * returns
@@ -108,20 +142,11 @@ declare class PaymentInstructionsBuilder {
      * "qr-crypto.v4.public...."
      * ```
      */
-    create(parameters: {
-        payload: InstructionPayload;
-        secretKey: string;
-        keyId: string;
-        options?: {
-            expiresIn?: string;
-            subject?: string;
-            audience?: string;
-        };
-    }, warnings?: boolean): Promise<string>;
+    create(data: InstructionPayload | UrlPayload, secretKey: string, options: TokenCreateOptions, warnings?: boolean): Promise<string>;
     /**
-     * Validate the payload of the payment instruction
+     * Validate the payload of the payment instruction or url
      *
-     * @param payload - InstructionPayload
+     * @param payload - InstructionPayload | UrlPayload
      *
      * @returns
      * `void` | `Error`
@@ -134,22 +159,49 @@ declare class PaymentInstructionsBuilder {
      *   payment: {
      *     id: "payment-id",
      *     address: "crypto-address",
-     *     network_code: NetworkCode.TRON,
-     *     coin_code: CoinCode.TRON_USDT,
+     *     network: NetworkCode.TRON,
+     *     coin: CoinCode.TRON_USDT,
      *     is_open: true,
      *   },
      * });
      * ```
      */
-    validatePayload(payload: InstructionPayload): void;
+    validatePayload(payload: InstructionPayload | UrlPayload): void;
     private validateParameters;
     /**
-     * Payload schema
+     * Payment Instruction Payload Schema
      *
      * @private
      *
      */
     private payloadSchema;
+    /**
+     * URL Payload Schema
+     *
+     * @private
+     *
+     */
+    private payloadUrlSchema;
+    /**
+     * Validate payload of the payment instruction
+     *
+     * @private
+     * @param payload - InstructionPayload
+     *
+     * @returns
+     * `void` | `Error`
+     */
+    private validatePaymentInstructionPayload;
+    /**
+     * Validate URL Payload
+     *
+     * @private
+     * @param payload - UrlPayload
+     *
+     * @returns
+     * `void` | `Error`
+     */
+    private validateUrlPayload;
 }
 /**
  * Class to handle payment instruction token (qr-crypto token) reading
@@ -197,7 +249,7 @@ declare class PaymentInstructionsReader {
      *   version: "v4",
      *   purpose: "public",
      *   payload: {
-     *    data: {
+     *    payload: {
      *      payment: {...},
      *      order: {....}
      *    },
@@ -205,18 +257,19 @@ declare class PaymentInstructionsReader {
      *    iat: "2024-10-29T21:17:00.000Z",
      *    exp: "2024-10-29T21:25:00.000Z",
      *    kid: "some-kid",
+     *    kep: "2025-12-31T00:00:00.000Z"
+     *    kis: "some-business.com"
      *    sub: "customer@qrCrypto.com",
      *    aud: "payer-crypto.com"
      *   }
      * }
      * ```
      */
-    read(parameters: {
+    read({ qrCrypto, publicKey, options, }: {
         qrCrypto: string;
         publicKey: string;
-        issuerDomain: string;
-        options?: ConsumeOptions<true>;
-    }): Promise<paseto.CompleteResult<InstructionPayload>>;
+        options?: ReadOptions;
+    }): Promise<paseto.CompleteResult<TokenPayload>>;
 }
 
 declare class PayInsError extends Error {
@@ -227,12 +280,23 @@ declare class InvalidPayload extends PayInsError {
 }
 declare class MissingSecretKey extends PayInsError {
 }
-declare class MissingKeyId extends PayInsError {
+declare class MissingKid extends PayInsError {
+}
+declare class MissingKis extends PayInsError {
+}
+declare class InvalidKepExpired extends PayInsError {
 }
 declare class InvalidQrCryptoToken extends PayInsError {
 }
+declare class InvalidQrCryptoKeyId extends PayInsError {
+}
+declare class InvalidQrCryptoKeyIssuer extends PayInsError {
+}
+declare class InvalidQrCryptoKeyExpired extends PayInsError {
+}
 
 declare function getNetworkData(network: string | NetworkCode): any;
+declare function isAfterDate(date1: string, date2: string): boolean;
 
 type AsymetricKey = "paserk";
 type PasetoTokenContext = "public";
@@ -325,4 +389,4 @@ declare class PasetoV4Handler {
 declare function biggerThanZero(value: string | number): boolean;
 declare function biggerThanOrEqualZero(value: string): boolean;
 
-export { CoinCode, type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, type InstructionPayment, InvalidPayload, InvalidQrCryptoToken, MissingKeyId, MissingSecretKey, NetworkCode, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, biggerThanOrEqualZero, biggerThanZero, getNetworkData };
+export { CoinCode, type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, type InstructionPayment, InvalidKepExpired, InvalidPayload, InvalidQrCryptoKeyExpired, InvalidQrCryptoKeyId, InvalidQrCryptoKeyIssuer, InvalidQrCryptoToken, MissingKid, MissingKis, MissingSecretKey, NetworkCode, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, type ReadOptions, type TokenCreateOptions, type TokenPayload, type TokenPublicKeyOptions, type UrlPayload, biggerThanOrEqualZero, biggerThanZero, getNetworkData, isAfterDate };

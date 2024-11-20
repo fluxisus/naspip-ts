@@ -1,3 +1,5 @@
+import { ConsumeOptions } from "paseto";
+
 export enum NetworkCode {
   BSC = "BSC",
   BITCOIN = "BITCOIN",
@@ -16,6 +18,10 @@ export enum CoinCode {
   POLYGON_USDC = "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
 }
 
+export interface UrlPayload {
+  url: string;
+}
+
 export interface InstructionPayload {
   payment: InstructionPayment;
   order?: InstructionOrder;
@@ -25,8 +31,8 @@ export interface InstructionPayment {
   id: string;
   address: string;
   address_tag?: string;
-  network_code: NetworkCode;
-  coin_code: CoinCode; // [token SC/address, ISO 4217]
+  network: NetworkCode;
+  coin: CoinCode; // [token SC/address, ISO 4217]
   is_open: boolean;
   amount?: string;
   min_amount?: string;
@@ -44,8 +50,8 @@ export interface InstructionOrder {
   total_amount: string;
   coin_code: string; // [token SC/address, ISO 4217]
   description?: string;
-  items: InstructionItem[];
-  merchant: InstructionMerchant;
+  items?: InstructionItem[];
+  merchant?: InstructionMerchant;
 }
 
 export interface InstructionItem {
@@ -53,7 +59,40 @@ export interface InstructionItem {
   description?: string;
   amount: string;
   unit_price?: string;
-  quantity: number;
+  quantity?: number;
   coin_code: string;
   image_url?: string;
+}
+
+export interface TokenPayload {
+  iss: string;
+  sub?: string;
+  aud?: string;
+  iat: string;
+  exp: string;
+  nbf?: string;
+  jti?: string;
+  kid: string;
+  kep: string;
+  kis: string;
+  payload: InstructionPayload | UrlPayload;
+}
+
+export interface TokenCreateOptions extends TokenPublicKeyOptions {
+  issuer?: string;
+  expiresIn: string;
+  subject?: string;
+  audience?: string;
+}
+
+export interface TokenPublicKeyOptions {
+  keyId: string;
+  keyExpiration: string;
+  keyIssuer: string;
+}
+
+export interface ReadOptions extends ConsumeOptions<true> {
+  keyId?: string;
+  keyIssuer?: string;
+  ignoreKeyExp?: boolean;
 }
