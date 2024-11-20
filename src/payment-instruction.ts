@@ -1,13 +1,25 @@
-import { ConsumeOptions } from "paseto";
 import * as superstruct from "superstruct";
 
-import { InstructionPayload, NetworkCode } from "./types";
+import {
+  InstructionPayload,
+  NetworkCode,
+  ReadOptions,
+  TokenCreateOptions,
+  TokenPayload,
+  TokenPublicKeyOptions,
+  UrlPayload,
+} from "./types";
 import {
   biggerThanOrEqualZero,
   biggerThanZero,
+  InvalidKepExpired,
   InvalidPayload,
+  InvalidQrCryptoKeyId,
+  InvalidQrCryptoKeyIssuer,
   InvalidQrCryptoToken,
-  MissingKeyId,
+  isAfterDate,
+  MissingKid,
+  MissingKis,
   MissingSecretKey,
   PasetoV4Handler,
 } from "./utils";
@@ -15,7 +27,6 @@ import {
 /**
  * Class to handle payment instruction token (qr-crypto token) creation with payload validation
  *
- * @param issuerDomain - string
  * @returns
  * `PaymentInstructionsBuilder`
  *
@@ -28,14 +39,17 @@ import {
 export class PaymentInstructionsBuilder {
   private pasetoHandler: PasetoV4Handler;
 
-  constructor(private issuerDomain: string) {
+  constructor() {
     this.pasetoHandler = new PasetoV4Handler();
   }
 
   /**
-   * Create a QR-Crypto payment instruction token
+   * Create a QR-Crypto token
    *
-   * @param parameters - { payload: InstructionPayload; secretKey: string; }
+   * @param data - InstructionPayload | UrlPayload;
+   * @param secretKey - string;
+   * @param options - TokenCreateOptions;
+   * @param [warnings=true]
    *
    * @returns
    * `string`
@@ -43,25 +57,26 @@ export class PaymentInstructionsBuilder {
    *
    * @example
    * ```ts
-   * const issuerDomain = "qrCrypto.com";
-   * const builder = new PaymentInstructionsBuilder(issuerDomain);
+   * const builder = new PaymentInstructionsBuilder();
    *
-   * const secretKey = "...";
-   * const keyId = "key-id-one";
-   *
-   * builder.create({
-   *   payload: {
+   * await builder.create(
+   *   {
    *     payment: {
    *       id: "payment-id",
    *       address: "crypto-address",
-   *       network_code: NetworkCode.TRON,
-   *       coin_code: CoinCode.TRON_USDT,
+   *       network: NetworkCode.TRON,
+   *       coin: CoinCode.TRON_USDT,
    *       is_open: true,
    *     },
    *   },
-   *   secretKey,
-   *   issuerDomain,
-   *   keyId,
+   *   secretKey: "some-private-secret",
+   *   {
+   *     issuer: "client.com",
+   *     expiresIn: "1h",
+   *     keyId: "key-id-one",
+   *     keyExpiration: "2025-12-12T01:00:00.000Z",
+   *     keyIssuer: "my-bussines.com",
+   *   }
    * });
    *
    * returns
@@ -70,45 +85,51 @@ export class PaymentInstructionsBuilder {
    * ```
    */
   public async create(
-    parameters: {
-      payload: InstructionPayload;
-      secretKey: string;
-      keyId: string;
-      options?: {
-        expiresIn?: string;
-        subject?: string;
-        audience?: string;
-      };
-    },
+    data: InstructionPayload | UrlPayload,
+    secretKey: string,
+    options: TokenCreateOptions,
     warnings = true,
   ) {
-    this.validateParameters(parameters);
+    this.validateParameters({
+      payload: data,
+      secretKey,
+      optionsKey: {
+        keyId: options.keyId,
+        keyIssuer: options.keyIssuer,
+        keyExpiration: options.keyExpiration,
+      },
+    });
 
-    if (warnings && !parameters.options?.expiresIn) {
+    if (warnings && !options?.expiresIn) {
       console.warn(
-        "\x1b[33m[WARNING]\x1b[0m: Field 'expiresIn' not provided in QR-Crypto token creation. It is recommended to set an expiration time.",
+        `\x1b[33m[WARNING]\x1b[0m: Field 'expiresIn' not provided in QR-Crypto token creation.
+         It is recommended to set an expiration time.
+         Use default of 10 minutes.`,
       );
     }
 
-    const pasetoToken = await this.pasetoHandler.sign(
-      parameters.payload,
-      parameters.secretKey,
-      {
-        issuer: this.issuerDomain,
-        expiresIn: parameters.options?.expiresIn,
-        kid: parameters.keyId,
-        subject: parameters.options?.subject,
-        audience: parameters.options?.audience,
-      },
-    );
+    const payload = {
+      payload: data,
+      kid: options.keyId,
+      kis: options.keyIssuer,
+      kep: options.keyExpiration,
+    };
+
+    const pasetoToken = await this.pasetoHandler.sign(payload, secretKey, {
+      issuer: options.issuer ?? options.keyIssuer,
+      expiresIn: options?.expiresIn || "10m",
+      kid: options.keyId,
+      subject: options?.subject,
+      audience: options?.audience,
+    });
 
     return `qr-crypto.${pasetoToken}`;
   }
 
   /**
-   * Validate the payload of the payment instruction
+   * Validate the payload of the payment instruction or url
    *
-   * @param payload - InstructionPayload
+   * @param payload - InstructionPayload | UrlPayload
    *
    * @returns
    * `void` | `Error`
@@ -121,44 +142,56 @@ export class PaymentInstructionsBuilder {
    *   payment: {
    *     id: "payment-id",
    *     address: "crypto-address",
-   *     network_code: NetworkCode.TRON,
-   *     coin_code: CoinCode.TRON_USDT,
+   *     network: NetworkCode.TRON,
+   *     coin: CoinCode.TRON_USDT,
    *     is_open: true,
    *   },
    * });
    * ```
    */
-  public validatePayload(payload: InstructionPayload) {
-    const [errors] = superstruct.validate(payload, this.payloadSchema);
-
-    if (errors) {
-      const [failure] = errors.failures();
-      throw new InvalidPayload(
-        failure?.message ?? "Payload does not match the expected schema",
-      );
+  public validatePayload(payload: InstructionPayload | UrlPayload) {
+    if ("url" in payload) {
+      return this.validateUrlPayload(payload);
     }
 
-    if (!payload.payment.is_open && !payload.payment.amount) {
-      throw new InvalidPayload(
-        "payment.amount is required when 'is_open' is true",
-      );
-    }
+    this.validatePaymentInstructionPayload(payload);
   }
 
-  private validateParameters({ payload, secretKey, keyId }) {
+  private validateParameters({
+    payload,
+    secretKey,
+    optionsKey,
+  }: {
+    payload: InstructionPayload | UrlPayload;
+    secretKey: string;
+    optionsKey: TokenPublicKeyOptions;
+  }) {
     if (!secretKey) {
       throw new MissingSecretKey("secretKey is required for token creation");
     }
 
-    if (!keyId) {
-      throw new MissingKeyId("keyId is required for token creation");
+    if (!optionsKey.keyId) {
+      throw new MissingKid("kid is required for token creation");
+    }
+
+    if (!optionsKey.keyIssuer) {
+      throw new MissingKis("kis is required for token creation");
+    }
+
+    const isKeyExpired = isAfterDate(
+      new Date().toISOString(),
+      optionsKey.keyExpiration,
+    );
+
+    if (isKeyExpired) {
+      throw new InvalidKepExpired("kid is expired for token creation");
     }
 
     this.validatePayload(payload);
   }
 
   /**
-   * Payload schema
+   * Payment Instruction Payload Schema
    *
    * @private
    *
@@ -168,8 +201,8 @@ export class PaymentInstructionsBuilder {
       id: superstruct.string(),
       address: superstruct.string(),
       address_tag: superstruct.optional(superstruct.string()),
-      network_code: superstruct.enums(Object.values(NetworkCode)),
-      coin_code: superstruct.string(),
+      network: superstruct.enums(Object.values(NetworkCode)),
+      coin: superstruct.string(),
       is_open: superstruct.boolean(),
       amount: superstruct.optional(
         superstruct.refine(superstruct.string(), "amount", biggerThanZero),
@@ -190,6 +223,12 @@ export class PaymentInstructionsBuilder {
         ),
         coin_code: superstruct.string(),
         description: superstruct.optional(superstruct.string()),
+        merchant: superstruct.object({
+          name: superstruct.string(),
+          description: superstruct.optional(superstruct.string()),
+          tax_id: superstruct.optional(superstruct.string()),
+          image_url: superstruct.optional(superstruct.string()),
+        }),
         items: superstruct.refine(
           superstruct.array(
             superstruct.object({
@@ -219,15 +258,65 @@ export class PaymentInstructionsBuilder {
           "items",
           (value) => value.length > 0,
         ),
-        merchant: superstruct.object({
-          name: superstruct.string(),
-          description: superstruct.optional(superstruct.string()),
-          tax_id: superstruct.optional(superstruct.string()),
-          image_url: superstruct.optional(superstruct.string()),
-        }),
       }),
     ),
   });
+
+  /**
+   * URL Payload Schema
+   *
+   * @private
+   *
+   */
+  private payloadUrlSchema = superstruct.object({
+    url: superstruct.string(),
+  });
+
+  /**
+   * Validate payload of the payment instruction
+   *
+   * @private
+   * @param payload - InstructionPayload
+   *
+   * @returns
+   * `void` | `Error`
+   */
+  private validatePaymentInstructionPayload(payload: InstructionPayload) {
+    const [errors] = superstruct.validate(payload, this.payloadSchema);
+
+    if (errors) {
+      const [failure] = errors.failures();
+      throw new InvalidPayload(
+        failure?.message ?? "Payload does not match the expected schema",
+      );
+    }
+
+    if (!payload.payment.is_open && !payload.payment.amount) {
+      throw new InvalidPayload(
+        "payment.amount is required when 'is_open' is false",
+      );
+    }
+  }
+
+  /**
+   * Validate URL Payload
+   *
+   * @private
+   * @param payload - UrlPayload
+   *
+   * @returns
+   * `void` | `Error`
+   */
+  private validateUrlPayload(payload: UrlPayload) {
+    const [errors] = superstruct.validate(payload, this.payloadUrlSchema);
+
+    if (errors) {
+      const [failure] = errors.failures();
+      throw new InvalidPayload(
+        failure?.message ?? "Payload does not match the expected schema",
+      );
+    }
+  }
 }
 
 /**
@@ -280,7 +369,7 @@ export class PaymentInstructionsReader {
    *   version: "v4",
    *   purpose: "public",
    *   payload: {
-   *    data: {
+   *    payload: {
    *      payment: {...},
    *      order: {....}
    *    },
@@ -288,34 +377,56 @@ export class PaymentInstructionsReader {
    *    iat: "2024-10-29T21:17:00.000Z",
    *    exp: "2024-10-29T21:25:00.000Z",
    *    kid: "some-kid",
+   *    kep: "2025-12-31T00:00:00.000Z"
+   *    kis: "some-business.com"
    *    sub: "customer@qrCrypto.com",
    *    aud: "payer-crypto.com"
    *   }
    * }
    * ```
    */
-  public async read(parameters: {
+  public async read({
+    qrCrypto,
+    publicKey,
+    options,
+  }: {
     qrCrypto: string;
     publicKey: string;
-    issuerDomain: string;
-    options?: ConsumeOptions<true>;
+    options?: ReadOptions;
   }) {
-    const isValidQr = parameters.qrCrypto.startsWith("qr-crypto.");
+    const isValidQr = qrCrypto.startsWith("qr-crypto.");
     if (!isValidQr) {
-      throw new InvalidQrCryptoToken("invalid 'qr-crypto' token prefix");
+      throw new InvalidQrCryptoToken("Invalid 'qr-crypto' token prefix");
     }
 
-    const token = parameters.qrCrypto.slice(10);
+    const token = qrCrypto.slice(10);
 
-    return this.pasetoHandler.verify<InstructionPayload>(
+    const data = await this.pasetoHandler.verify<TokenPayload>(
       token,
-      parameters.publicKey,
+      publicKey,
       {
-        ...parameters.options,
+        ...options,
         complete: true,
         ignoreExp: false,
-        issuer: parameters.issuerDomain,
+        ignoreIat: false,
       },
     );
+
+    if (options?.keyId && options.keyId !== data.payload.kid) {
+      throw new InvalidQrCryptoKeyId("Invalid Key ID");
+    }
+
+    if (options?.keyIssuer && options.keyIssuer !== data.payload.kis) {
+      throw new InvalidQrCryptoKeyIssuer("Invalid Key Issuer");
+    }
+
+    if (
+      !options?.ignoreKeyExp &&
+      isAfterDate(new Date().toISOString(), data.payload.kep)
+    ) {
+      throw new InvalidQrCryptoKeyIssuer("Invalid Key Issuer");
+    }
+
+    return data;
   }
 }

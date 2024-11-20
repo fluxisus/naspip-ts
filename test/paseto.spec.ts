@@ -3,7 +3,6 @@ import { CoinCode, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
 let paseto: PasetoV4Handler;
-let builder: PaymentInstructionsBuilder;
 let commonKeys: {
   publicKey: string;
   secretKey: string;
@@ -13,7 +12,6 @@ let pasetoToken: string;
 
 beforeAll(async () => {
   paseto = new PasetoV4Handler();
-  builder = new PaymentInstructionsBuilder("qrCrypto.com");
   commonKeys = await PasetoV4Handler.generateKey("public", {
     format: "paserk",
   });
@@ -103,25 +101,28 @@ describe("Paseto Test", () => {
 });
 
 async function createTestToken() {
-  const keyId = "key-id-one";
+  const builder = new PaymentInstructionsBuilder();
 
-  const qrCryptoToken = await builder.create({
-    payload: {
+  const qrCryptoToken = await builder.create(
+    {
       payment: {
         id: "payment-id",
         address: "crypto-address",
-        network_code: NetworkCode.TRON,
-        coin_code: CoinCode.TRON_USDT,
+        network: NetworkCode.TRON,
+        coin: CoinCode.TRON_USDT,
         is_open: false,
         amount: "100",
       },
     },
-    secretKey: commonKeys.secretKey,
-    keyId,
-    options: {
+    commonKeys.secretKey,
+    {
+      keyId: "key-id-one",
+      keyIssuer: "payment-processor.com",
+      keyExpiration: "2025-11-11T00:00:00.000Z",
+      issuer: "qrCrypto.com",
       expiresIn: "5m",
     },
-  });
+  );
 
   return qrCryptoToken.slice(10);
 }
