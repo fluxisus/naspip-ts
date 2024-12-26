@@ -113,6 +113,7 @@ describe("Payment Instructions Classes Test", () => {
         issuer: "qrCrypto.com",
         subject: "my-ecommerce.com",
         expiresIn: "5m",
+        assertion: commonKeys.publicKey,
       },
     );
 
@@ -153,6 +154,7 @@ describe("Payment Instructions Classes Test", () => {
         issuer: "qrCrypto.com",
         subject: "my-ecommerce.com",
         expiresIn: "5m",
+        assertion: commonKeys.publicKey,
       },
     );
 
@@ -186,6 +188,7 @@ describe("Payment Instructions Classes Test", () => {
         issuer: "qrCrypto.com",
         subject: "my-ecommerce.com",
         expiresIn: "5m",
+        assertion: commonKeys.publicKey,
       },
     );
 

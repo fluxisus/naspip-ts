@@ -18,13 +18,13 @@ async function main() {
 
   console.log({ publicKey, secretKey });
 
-  const builder = new PaymentInstructionsBuilder(issuer);
+  const builder = new PaymentInstructionsBuilder();
   const payload: InstructionPayload = {
     payment: {
       id: "id",
       address: "string",
-      network_code: NetworkCode.TRON,
-      coin_code: CoinCode.TRON_USDT,
+      network: NetworkCode.TRON,
+      coin: CoinCode.TRON_USDT,
       is_open: false,
       amount: "1",
     },
@@ -44,17 +44,20 @@ async function main() {
       },
     },
   };
-  const qrCrypto = await builder.create({
-    payload,
-    secretKey,
+  const qrCrypto = await builder.create(payload, secretKey, {
     keyId: "key-id-one",
+    keyIssuer: "testing.com",
+    expiresIn: "1h",
+    keyExpiration: "1h",
+    issuer,
+    assertion: publicKey,
   });
   console.log("payload valid and token created:", { qrCrypto });
 
   const data = await reader.read({
     qrCrypto,
     publicKey,
-    issuerDomain: issuer,
+    options: { issuer },
   });
 
   console.log(JSON.stringify(data, null, 2));

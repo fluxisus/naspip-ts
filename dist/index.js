@@ -260,24 +260,27 @@ var PasetoV4Handler = class {
   * @remarks
   * Claims reserved
   *
-  * | Key |    Name    |  Type  |             Example                 |
+  * | Key |    Name        |  Type  |             Example                 |
   *
-  * | iss |   Issuer   | string |       {"iss":"paragonie.com"}       |
+  * | iss |   Issuer       | string |       {"iss":"paragonie.com"}       |
   *
-  * | sub |  Subject   | string |            {"sub":"test"}           |
+  * | sub |  Subject       | string |            {"sub":"test"}           |
   *
-  * | aud |  Audience  | string |       {"aud":"pie-hosted.com"}      |
+  * | aud |  Audience      | string |       {"aud":"pie-hosted.com"}      |
   *
-  * | exp | Expiration | DtTime | {"exp":"2039-01-01T00:00:00+00:00"} |
+  * | exp | Expiration     | DtTime | {"exp":"2039-01-01T00:00:00+00:00"} |
   *
-  * | nbf | Not Before | DtTime | {"nbf":"2038-04-01T00:00:00+00:00"} |
+  * | nbf | Not Before     | DtTime | {"nbf":"2038-04-01T00:00:00+00:00"} |
   *
-  * | iat | Issued At  | DtTime | {"iat":"2038-03-17T00:00:00+00:00"} |
+  * | iat | Issued At      | DtTime | {"iat":"2038-03-17T00:00:00+00:00"} |
   *
-  * | jti |  Token ID  | string |  {"jti":"87IFSGFgPNtQNNuw0AtuLttP"} |
+  * | jti |  Token ID      | string |  {"jti":"87IFSGFgPNtQNNuw0AtuLttP"} |
   *
-  * | kid |   Key-ID   | string |    {"kid":"stored-in-the-footer"}   |
+  * | kid |   Key-ID       | string |    {"kid":"stored-in-the-footer"}   |
   *
+  * | kis | Key-Issuer     | string |    {"kis":"my-issuer.com"}          |
+  *
+  * | kep | Key-Expiration | DtTime | {"kep":"2038-03-17T00:00:00+00:00"} |
   *
   *
   * @param payload - a Record with data to sign
@@ -389,7 +392,8 @@ var PaymentInstructionsBuilder = class {
       expiresIn: options?.expiresIn || "10m",
       kid: options.keyId,
       subject: options?.subject,
-      audience: options?.audience
+      audience: options?.audience,
+      assertion: options?.assertion
     });
     return `qr-crypto.${pasetoToken}`;
   }
@@ -589,7 +593,8 @@ var PaymentInstructionsReader = class {
       ...options,
       complete: true,
       ignoreExp: false,
-      ignoreIat: false
+      ignoreIat: false,
+      assertion: publicKey
     });
     if (options?.keyId && options.keyId !== data.payload.kid) {
       throw new InvalidQrCryptoKeyId("Invalid Key ID");
