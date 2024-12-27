@@ -121,6 +121,7 @@ export class PaymentInstructionsBuilder {
       kid: options.keyId,
       subject: options?.subject,
       audience: options?.audience,
+      assertion: options?.assertion,
     });
 
     return `qr-crypto.${pasetoToken}`;
@@ -409,6 +410,7 @@ export class PaymentInstructionsReader {
         complete: true,
         ignoreExp: false,
         ignoreIat: false,
+        assertion: publicKey,
       },
     );
 

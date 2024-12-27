@@ -83,6 +83,7 @@ export interface TokenCreateOptions extends TokenPublicKeyOptions {
   expiresIn: string;
   subject?: string;
   audience?: string;
+  assertion?: string;
 }
 
 export interface TokenPublicKeyOptions {
