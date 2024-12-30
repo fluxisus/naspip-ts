@@ -14,9 +14,9 @@ import {
   biggerThanZero,
   InvalidKepExpired,
   InvalidPayload,
-  InvalidQrCryptoKeyId,
-  InvalidQrCryptoKeyIssuer,
-  InvalidQrCryptoToken,
+  InvalidQrPaymentKeyId,
+  InvalidQrPaymentKeyIssuer,
+  InvalidQrPaymentToken,
   isAfterDate,
   MissingKid,
   MissingKis,
@@ -124,7 +124,9 @@ export class PaymentInstructionsBuilder {
       assertion: options?.assertion,
     });
 
-    return `qr-crypto.${pasetoToken}`;
+    return ["qr-payment", options.keyIssuer, options.keyId, pasetoToken].join(
+      ";",
+    );
   }
 
   /**
@@ -337,10 +339,28 @@ export class PaymentInstructionsReader {
     this.pasetoHandler = new PasetoV4Handler();
   }
 
+  public decode(qrPayment: string) {
+    const decoded = qrPayment.split(";");
+
+    const isValidQr = decoded.length == 4 && decoded[0] == "qr-payment";
+
+    if (!isValidQr) {
+      throw new InvalidQrPaymentToken("Invalid 'qr-payment' token prefix");
+    }
+
+    const [prefix, keyIssuer, keyId, token] = decoded;
+
+    if (!token) {
+      throw new InvalidQrPaymentToken("Invalid 'qr-payment' token");
+    }
+
+    return { prefix, keyIssuer, keyId, token };
+  }
+
   /**
-   * Read a QR-Crypto payment instruction
+   * Read a QR payment instruction
    *
-   * @param qrCrypto - QR-Crypto token string
+   * @param qrPayment - QR-Crypto token string
    * @param publicKey - string
    * @param options - ConsumeOptions<true> (optional)
    *
@@ -358,7 +378,7 @@ export class PaymentInstructionsReader {
    * const reader = new PaymentInstructionsReader();
    *
    * reader.read({
-   *    qrCrypto: "qr-crypto.v4.public....",
+   *    qrPayment: "qr-payment;keyIssuer;keyId;v4.public....",
    *    publicKey: "some-public-key",
    *    issuerDomain: "qrCrypto.com",
    *    options: { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
@@ -387,23 +407,18 @@ export class PaymentInstructionsReader {
    * ```
    */
   public async read({
-    qrCrypto,
+    qrPayment,
     publicKey,
     options,
   }: {
-    qrCrypto: string;
+    qrPayment: string;
     publicKey: string;
     options?: ReadOptions;
   }) {
-    const isValidQr = qrCrypto.startsWith("qr-crypto.");
-    if (!isValidQr) {
-      throw new InvalidQrCryptoToken("Invalid 'qr-crypto' token prefix");
-    }
-
-    const token = qrCrypto.slice(10);
+    const decodedQr = this.decode(qrPayment);
 
     const data = await this.pasetoHandler.verify<TokenPayload>(
-      token,
+      decodedQr.token,
       publicKey,
       {
         ...options,
@@ -415,18 +430,18 @@ export class PaymentInstructionsReader {
     );
 
     if (options?.keyId && options.keyId !== data.payload.kid) {
-      throw new InvalidQrCryptoKeyId("Invalid Key ID");
+      throw new InvalidQrPaymentKeyId("Invalid Key ID");
     }
 
     if (options?.keyIssuer && options.keyIssuer !== data.payload.kis) {
-      throw new InvalidQrCryptoKeyIssuer("Invalid Key Issuer");
+      throw new InvalidQrPaymentKeyIssuer("Invalid Key Issuer");
     }
 
     if (
       !options?.ignoreKeyExp &&
       isAfterDate(new Date().toISOString(), data.payload.kep)
     ) {
-      throw new InvalidQrCryptoKeyIssuer("Invalid Key Issuer");
+      throw new InvalidQrPaymentKeyIssuer("Invalid Key Issuer");
     }
 
     return data;

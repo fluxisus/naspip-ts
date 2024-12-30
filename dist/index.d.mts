@@ -217,10 +217,16 @@ declare class PaymentInstructionsBuilder {
 declare class PaymentInstructionsReader {
     private pasetoHandler;
     constructor();
+    decode(qrPayment: string): {
+        prefix: string | undefined;
+        keyIssuer: string | undefined;
+        keyId: string | undefined;
+        token: string;
+    };
     /**
-     * Read a QR-Crypto payment instruction
+     * Read a QR payment instruction
      *
-     * @param qrCrypto - QR-Crypto token string
+     * @param qrPayment - QR-Crypto token string
      * @param publicKey - string
      * @param options - ConsumeOptions<true> (optional)
      *
@@ -238,7 +244,7 @@ declare class PaymentInstructionsReader {
      * const reader = new PaymentInstructionsReader();
      *
      * reader.read({
-     *    qrCrypto: "qr-crypto.v4.public....",
+     *    qrPayment: "qr-payment;keyIssuer;keyId;v4.public....",
      *    publicKey: "some-public-key",
      *    issuerDomain: "qrCrypto.com",
      *    options: { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
@@ -266,8 +272,8 @@ declare class PaymentInstructionsReader {
      * }
      * ```
      */
-    read({ qrCrypto, publicKey, options, }: {
-        qrCrypto: string;
+    read({ qrPayment, publicKey, options, }: {
+        qrPayment: string;
         publicKey: string;
         options?: ReadOptions;
     }): Promise<paseto.CompleteResult<TokenPayload>>;
@@ -287,13 +293,13 @@ declare class MissingKis extends PayInsError {
 }
 declare class InvalidKepExpired extends PayInsError {
 }
-declare class InvalidQrCryptoToken extends PayInsError {
+declare class InvalidQrPaymentToken extends PayInsError {
 }
-declare class InvalidQrCryptoKeyId extends PayInsError {
+declare class InvalidQrPaymentKeyId extends PayInsError {
 }
-declare class InvalidQrCryptoKeyIssuer extends PayInsError {
+declare class InvalidQrPaymentKeyIssuer extends PayInsError {
 }
-declare class InvalidQrCryptoKeyExpired extends PayInsError {
+declare class InvalidQrPaymentKeyExpired extends PayInsError {
 }
 
 declare function getNetworkData(network: string | NetworkCode): any;
@@ -393,4 +399,4 @@ declare class PasetoV4Handler {
 declare function biggerThanZero(value: string | number): boolean;
 declare function biggerThanOrEqualZero(value: string): boolean;
 
-export { CoinCode, type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, type InstructionPayment, InvalidKepExpired, InvalidPayload, InvalidQrCryptoKeyExpired, InvalidQrCryptoKeyId, InvalidQrCryptoKeyIssuer, InvalidQrCryptoToken, MissingKid, MissingKis, MissingSecretKey, NetworkCode, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, type ReadOptions, type TokenCreateOptions, type TokenPayload, type TokenPublicKeyOptions, type UrlPayload, biggerThanOrEqualZero, biggerThanZero, getNetworkData, isAfterDate };
+export { CoinCode, type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, type InstructionPayment, InvalidKepExpired, InvalidPayload, InvalidQrPaymentKeyExpired, InvalidQrPaymentKeyId, InvalidQrPaymentKeyIssuer, InvalidQrPaymentToken, MissingKid, MissingKis, MissingSecretKey, NetworkCode, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, type ReadOptions, type TokenCreateOptions, type TokenPayload, type TokenPublicKeyOptions, type UrlPayload, biggerThanOrEqualZero, biggerThanZero, getNetworkData, isAfterDate };
