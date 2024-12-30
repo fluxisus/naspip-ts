@@ -4,10 +4,10 @@ const CODES = {
   MissingKid: "ERR_MISSING_KEY_ID",
   MissingKis: "ERR_MISSING_KEY_ISSUER",
   InvalidKepExpired: "ERR_KEY_ID_IS_EXPIRED",
-  InvalidQrCryptoToken: "ERR_INVALID_QR_CRYPTO_TOKEN",
-  InvalidQrCryptoKeyId: "ERR_INVALID_QR_CRYPTO_KID",
-  InvalidQrCryptoKeyIssuer: "ERR_INVALID_QR_CRYPTO_KIS",
-  InvalidQrCryptoKeyExpired: "ERR_INVALID_QR_CRYPTO_KEP",
+  InvalidQrPaymentToken: "ERR_INVALID_QR_PAYMENT_TOKEN",
+  InvalidQrPaymentKeyId: "ERR_INVALID_QR_PAYMENT_KID",
+  InvalidQrPaymentKeyIssuer: "ERR_INVALID_QR_PAYMENT_KIS",
+  InvalidQrPaymentKeyExpired: "ERR_INVALID_QR_PAYMENT_KEP",
 } as const;
 
 export class PayInsError extends Error {
@@ -28,7 +28,7 @@ export class MissingSecretKey extends PayInsError {}
 export class MissingKid extends PayInsError {}
 export class MissingKis extends PayInsError {}
 export class InvalidKepExpired extends PayInsError {}
-export class InvalidQrCryptoToken extends PayInsError {}
-export class InvalidQrCryptoKeyId extends PayInsError {}
-export class InvalidQrCryptoKeyIssuer extends PayInsError {}
-export class InvalidQrCryptoKeyExpired extends PayInsError {}
+export class InvalidQrPaymentToken extends PayInsError {}
+export class InvalidQrPaymentKeyId extends PayInsError {}
+export class InvalidQrPaymentKeyIssuer extends PayInsError {}
+export class InvalidQrPaymentKeyExpired extends PayInsError {}

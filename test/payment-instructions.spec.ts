@@ -120,7 +120,7 @@ describe("Payment Instructions Classes Test", () => {
     const reader = new PaymentInstructionsReader();
 
     const data = await reader.read({
-      qrCrypto: token,
+      qrPayment: token,
       publicKey: commonKeys.publicKey,
       options: {
         keyId: "key-id-one",
@@ -162,7 +162,7 @@ describe("Payment Instructions Classes Test", () => {
 
     expect(async () => {
       await reader.read({
-        qrCrypto: token,
+        qrPayment: token,
         publicKey: commonKeys.publicKey,
         options: {
           keyId: "key-id-one",
@@ -196,7 +196,7 @@ describe("Payment Instructions Classes Test", () => {
 
     expect(async () => {
       await reader.read({
-        qrCrypto: token,
+        qrPayment: token,
         publicKey: commonKeys.publicKey,
         options: {
           keyIssuer: "other-issuer.com",

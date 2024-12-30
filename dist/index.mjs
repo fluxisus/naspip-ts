@@ -31,10 +31,10 @@ var CODES = {
   MissingKid: "ERR_MISSING_KEY_ID",
   MissingKis: "ERR_MISSING_KEY_ISSUER",
   InvalidKepExpired: "ERR_KEY_ID_IS_EXPIRED",
-  InvalidQrCryptoToken: "ERR_INVALID_QR_CRYPTO_TOKEN",
-  InvalidQrCryptoKeyId: "ERR_INVALID_QR_CRYPTO_KID",
-  InvalidQrCryptoKeyIssuer: "ERR_INVALID_QR_CRYPTO_KIS",
-  InvalidQrCryptoKeyExpired: "ERR_INVALID_QR_CRYPTO_KEP"
+  InvalidQrPaymentToken: "ERR_INVALID_QR_PAYMENT_TOKEN",
+  InvalidQrPaymentKeyId: "ERR_INVALID_QR_PAYMENT_KID",
+  InvalidQrPaymentKeyIssuer: "ERR_INVALID_QR_PAYMENT_KIS",
+  InvalidQrPaymentKeyExpired: "ERR_INVALID_QR_PAYMENT_KEP"
 };
 var PayInsError = class extends Error {
   static {
@@ -73,24 +73,24 @@ var InvalidKepExpired = class extends PayInsError {
     __name(this, "InvalidKepExpired");
   }
 };
-var InvalidQrCryptoToken = class extends PayInsError {
+var InvalidQrPaymentToken = class extends PayInsError {
   static {
-    __name(this, "InvalidQrCryptoToken");
+    __name(this, "InvalidQrPaymentToken");
   }
 };
-var InvalidQrCryptoKeyId = class extends PayInsError {
+var InvalidQrPaymentKeyId = class extends PayInsError {
   static {
-    __name(this, "InvalidQrCryptoKeyId");
+    __name(this, "InvalidQrPaymentKeyId");
   }
 };
-var InvalidQrCryptoKeyIssuer = class extends PayInsError {
+var InvalidQrPaymentKeyIssuer = class extends PayInsError {
   static {
-    __name(this, "InvalidQrCryptoKeyIssuer");
+    __name(this, "InvalidQrPaymentKeyIssuer");
   }
 };
-var InvalidQrCryptoKeyExpired = class extends PayInsError {
+var InvalidQrPaymentKeyExpired = class extends PayInsError {
   static {
-    __name(this, "InvalidQrCryptoKeyExpired");
+    __name(this, "InvalidQrPaymentKeyExpired");
   }
 };
 
@@ -343,7 +343,12 @@ var PaymentInstructionsBuilder = class {
       audience: options?.audience,
       assertion: options?.assertion
     });
-    return `qr-crypto.${pasetoToken}`;
+    return [
+      "qr-payment",
+      options.keyIssuer,
+      options.keyId,
+      pasetoToken
+    ].join(";");
   }
   /**
   * Validate the payload of the payment instruction or url
@@ -482,10 +487,27 @@ var PaymentInstructionsReader = class {
   constructor() {
     this.pasetoHandler = new PasetoV4Handler();
   }
+  decode(qrPayment) {
+    const decoded = qrPayment.split(";");
+    const isValidQr = decoded.length == 4 && decoded[0] == "qr-payment";
+    if (!isValidQr) {
+      throw new InvalidQrPaymentToken("Invalid 'qr-payment' token prefix");
+    }
+    const [prefix, keyIssuer, keyId, token] = decoded;
+    if (!token) {
+      throw new InvalidQrPaymentToken("Invalid 'qr-payment' token");
+    }
+    return {
+      prefix,
+      keyIssuer,
+      keyId,
+      token
+    };
+  }
   /**
-  * Read a QR-Crypto payment instruction
+  * Read a QR payment instruction
   *
-  * @param qrCrypto - QR-Crypto token string
+  * @param qrPayment - QR-Crypto token string
   * @param publicKey - string
   * @param options - ConsumeOptions<true> (optional)
   *
@@ -503,7 +525,7 @@ var PaymentInstructionsReader = class {
   * const reader = new PaymentInstructionsReader();
   *
   * reader.read({
-  *    qrCrypto: "qr-crypto.v4.public....",
+  *    qrPayment: "qr-payment;keyIssuer;keyId;v4.public....",
   *    publicKey: "some-public-key",
   *    issuerDomain: "qrCrypto.com",
   *    options: { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
@@ -531,13 +553,9 @@ var PaymentInstructionsReader = class {
   * }
   * ```
   */
-  async read({ qrCrypto, publicKey, options }) {
-    const isValidQr = qrCrypto.startsWith("qr-crypto.");
-    if (!isValidQr) {
-      throw new InvalidQrCryptoToken("Invalid 'qr-crypto' token prefix");
-    }
-    const token = qrCrypto.slice(10);
-    const data = await this.pasetoHandler.verify(token, publicKey, {
+  async read({ qrPayment, publicKey, options }) {
+    const decodedQr = this.decode(qrPayment);
+    const data = await this.pasetoHandler.verify(decodedQr.token, publicKey, {
       ...options,
       complete: true,
       ignoreExp: false,
@@ -545,13 +563,13 @@ var PaymentInstructionsReader = class {
       assertion: publicKey
     });
     if (options?.keyId && options.keyId !== data.payload.kid) {
-      throw new InvalidQrCryptoKeyId("Invalid Key ID");
+      throw new InvalidQrPaymentKeyId("Invalid Key ID");
     }
     if (options?.keyIssuer && options.keyIssuer !== data.payload.kis) {
-      throw new InvalidQrCryptoKeyIssuer("Invalid Key Issuer");
+      throw new InvalidQrPaymentKeyIssuer("Invalid Key Issuer");
     }
     if (!options?.ignoreKeyExp && isAfterDate((/* @__PURE__ */ new Date()).toISOString(), data.payload.kep)) {
-      throw new InvalidQrCryptoKeyIssuer("Invalid Key Issuer");
+      throw new InvalidQrPaymentKeyIssuer("Invalid Key Issuer");
     }
     return data;
   }
@@ -560,10 +578,10 @@ export {
   CoinCode,
   InvalidKepExpired,
   InvalidPayload,
-  InvalidQrCryptoKeyExpired,
-  InvalidQrCryptoKeyId,
-  InvalidQrCryptoKeyIssuer,
-  InvalidQrCryptoToken,
+  InvalidQrPaymentKeyExpired,
+  InvalidQrPaymentKeyId,
+  InvalidQrPaymentKeyIssuer,
+  InvalidQrPaymentToken,
   MissingKid,
   MissingKis,
   MissingSecretKey,

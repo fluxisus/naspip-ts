@@ -1,4 +1,7 @@
-import { PaymentInstructionsBuilder } from "../src/payment-instruction";
+import {
+  PaymentInstructionsBuilder,
+  PaymentInstructionsReader,
+} from "../src/payment-instruction";
 import { CoinCode, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
@@ -103,7 +106,7 @@ describe("Paseto Test", () => {
 async function createTestToken() {
   const builder = new PaymentInstructionsBuilder();
 
-  const qrCryptoToken = await builder.create(
+  const qrPaymentToken = await builder.create(
     {
       payment: {
         id: "payment-id",
@@ -124,5 +127,9 @@ async function createTestToken() {
     },
   );
 
-  return qrCryptoToken.slice(10);
+  const reader = new PaymentInstructionsReader();
+
+  const decoded = reader.decode(qrPaymentToken);
+
+  return decoded.token;
 }
