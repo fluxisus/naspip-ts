@@ -2,7 +2,7 @@ import {
   PaymentInstructionsBuilder,
   PaymentInstructionsReader,
 } from "../src/payment-instruction";
-import { CoinCode, InstructionPayload, NetworkCode } from "../src/types";
+import { InstructionPayload } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
 async function main() {
@@ -23,18 +23,18 @@ async function main() {
     payment: {
       id: "id",
       address: "string",
-      network: NetworkCode.TRON,
-      coin: CoinCode.TRON_USDT,
+      network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
       is_open: false,
       amount: "1",
+      expires_at: new Date().valueOf() + 5 * 60 * 1000,
     },
     order: {
       total_amount: "1",
-      coin_code: CoinCode.TRON_USDT,
+      coin_code: "USDT",
       items: [
         {
-          title: "itemName",
-          coin_code: CoinCode.TRON_USDT,
+          description: "itemName",
+          coin_code: "USDT",
           amount: "1",
           quantity: 1,
         },
@@ -55,7 +55,7 @@ async function main() {
   console.log("payload valid and token created:", { qrCrypto });
 
   const data = await reader.read({
-    qrCrypto,
+    qrPayment: qrCrypto,
     publicKey,
     options: { issuer },
   });
