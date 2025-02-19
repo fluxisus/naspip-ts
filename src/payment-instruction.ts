@@ -2,7 +2,6 @@ import * as superstruct from "superstruct";
 
 import {
   InstructionPayload,
-  NetworkCode,
   ReadOptions,
   TokenCreateOptions,
   TokenPayload,
@@ -64,9 +63,9 @@ export class PaymentInstructionsBuilder {
    *     payment: {
    *       id: "payment-id",
    *       address: "crypto-address",
-   *       network: NetworkCode.TRON,
-   *       coin: CoinCode.TRON_USDT,
+   *       network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
    *       is_open: true,
+   *       expires_at: 1739802610209,
    *     },
    *   },
    *   secretKey: "some-private-secret",
@@ -145,9 +144,9 @@ export class PaymentInstructionsBuilder {
    *   payment: {
    *     id: "payment-id",
    *     address: "crypto-address",
-   *     network: NetworkCode.TRON,
-   *     coin: CoinCode.TRON_USDT,
+   *     network_token: ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t,
    *     is_open: true,
+   *     expires_at: 17855465854,
    *   },
    * });
    * ```
@@ -193,6 +192,51 @@ export class PaymentInstructionsBuilder {
     this.validatePayload(payload);
   }
 
+  /*
+   * Instruction Order Schema
+   */
+  private instructionOrderSchema = superstruct.object({
+    total_amount: superstruct.refine(
+      superstruct.string(),
+      "total_amount",
+      biggerThanZero,
+    ),
+    coin_code: superstruct.string(),
+    description: superstruct.optional(superstruct.string()),
+    merchant: superstruct.object({
+      name: superstruct.string(),
+      description: superstruct.optional(superstruct.string()),
+      tax_id: superstruct.optional(superstruct.string()),
+      image: superstruct.optional(superstruct.string()),
+      mcc: superstruct.optional(superstruct.string()),
+    }),
+    items: superstruct.optional(
+      superstruct.array(
+        superstruct.object({
+          description: superstruct.string(),
+          amount: superstruct.refine(
+            superstruct.string(),
+            "amount",
+            biggerThanOrEqualZero,
+          ),
+          unit_price: superstruct.optional(
+            superstruct.refine(
+              superstruct.string(),
+              "unit_price",
+              biggerThanOrEqualZero,
+            ),
+          ),
+          quantity: superstruct.refine(
+            superstruct.number(),
+            "quantity",
+            biggerThanZero,
+          ),
+          coin_code: superstruct.string(),
+        }),
+      ),
+    ),
+  });
+
   /**
    * Payment Instruction Payload Schema
    *
@@ -204,8 +248,7 @@ export class PaymentInstructionsBuilder {
       id: superstruct.string(),
       address: superstruct.string(),
       address_tag: superstruct.optional(superstruct.string()),
-      network: superstruct.enums(Object.values(NetworkCode)),
-      coin: superstruct.string(),
+      network_token: superstruct.string(),
       is_open: superstruct.boolean(),
       amount: superstruct.optional(
         superstruct.refine(superstruct.string(), "amount", biggerThanZero),
@@ -216,53 +259,9 @@ export class PaymentInstructionsBuilder {
       max_amount: superstruct.optional(
         superstruct.refine(superstruct.string(), "max_amount", biggerThanZero),
       ),
+      expires_at: superstruct.integer(),
     }),
-    order: superstruct.optional(
-      superstruct.object({
-        total_amount: superstruct.refine(
-          superstruct.string(),
-          "total_amount",
-          biggerThanZero,
-        ),
-        coin_code: superstruct.string(),
-        description: superstruct.optional(superstruct.string()),
-        merchant: superstruct.object({
-          name: superstruct.string(),
-          description: superstruct.optional(superstruct.string()),
-          tax_id: superstruct.optional(superstruct.string()),
-          image_url: superstruct.optional(superstruct.string()),
-        }),
-        items: superstruct.refine(
-          superstruct.array(
-            superstruct.object({
-              title: superstruct.string(),
-              description: superstruct.optional(superstruct.string()),
-              amount: superstruct.refine(
-                superstruct.string(),
-                "amount",
-                biggerThanOrEqualZero,
-              ),
-              unit_price: superstruct.optional(
-                superstruct.refine(
-                  superstruct.string(),
-                  "unit_price",
-                  biggerThanOrEqualZero,
-                ),
-              ),
-              quantity: superstruct.refine(
-                superstruct.number(),
-                "quantity",
-                biggerThanZero,
-              ),
-              coin_code: superstruct.string(),
-              image_url: superstruct.optional(superstruct.string()),
-            }),
-          ),
-          "items",
-          (value) => value.length > 0,
-        ),
-      }),
-    ),
+    order: superstruct.optional(this.instructionOrderSchema),
   });
 
   /**
@@ -273,6 +272,10 @@ export class PaymentInstructionsBuilder {
    */
   private payloadUrlSchema = superstruct.object({
     url: superstruct.string(),
+    payment_options: superstruct.optional(
+      superstruct.array(superstruct.string()),
+    ),
+    order: superstruct.optional(this.instructionOrderSchema),
   });
 
   /**

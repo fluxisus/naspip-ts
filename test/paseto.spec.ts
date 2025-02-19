@@ -2,7 +2,6 @@ import {
   PaymentInstructionsBuilder,
   PaymentInstructionsReader,
 } from "../src/payment-instruction";
-import { CoinCode, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
 let paseto: PasetoV4Handler;
@@ -111,10 +110,10 @@ async function createTestToken() {
       payment: {
         id: "payment-id",
         address: "crypto-address",
-        network: NetworkCode.TRON,
-        coin: CoinCode.TRON_USDT,
+        network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
         is_open: false,
         amount: "100",
+        expires_at: new Date().valueOf() + 5 * 60 * 1000,
       },
     },
     commonKeys.secretKey,

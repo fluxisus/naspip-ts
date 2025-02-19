@@ -2,7 +2,6 @@ import {
   PaymentInstructionsBuilder,
   PaymentInstructionsReader,
 } from "../src/payment-instruction";
-import { CoinCode, NetworkCode } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
 let commonKeys: {
@@ -25,9 +24,9 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network: NetworkCode.TRON,
-          coin: CoinCode.TRON_USDT,
+          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: true,
+          expires_at: new Date().valueOf() + 5 * 60 * 1000,
         },
       },
       commonKeys.secretKey,
@@ -51,10 +50,10 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network: NetworkCode.TRON,
-          coin: CoinCode.TRON_USDT,
+          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: false,
           amount: "100",
+          expires_at: new Date().valueOf() + 5 * 60 * 1000,
         },
       },
       commonKeys.secretKey,
@@ -91,6 +90,62 @@ describe("Payment Instructions Classes Test", () => {
     expect(token).toBeDefined();
   });
 
+  test("Should create url payload token with options", async () => {
+    const builder = new PaymentInstructionsBuilder();
+
+    const token = await builder.create(
+      {
+        url: "https://www.my-ecommerce.com/checkout?id=lasdh-asdlsa-ads",
+        payment_options: [
+          "ntrc20_tcontract-token-1",
+          "npolygon_tcontract_address_usdt",
+        ],
+      },
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
+        subject: "my-ecommerce.com",
+        expiresIn: "5m",
+      },
+    );
+
+    expect(token).toBeDefined();
+  });
+
+  test("Should create url payload token with options and order", async () => {
+    const builder = new PaymentInstructionsBuilder();
+
+    const token = await builder.create(
+      {
+        url: "https://www.my-ecommerce.com/checkout?id=lasdh-asdlsa-ads",
+        payment_options: [
+          "ntrc20_tcontract-token-1",
+          "npolygon_tcontract_address_usdt",
+        ],
+        order: {
+          total_amount: "1000",
+          coin_code: "USD",
+          description: "T-Shirt",
+          merchant: { name: "Ecommerce" },
+        },
+      },
+      commonKeys.secretKey,
+      {
+        keyId: "key-id-one",
+        keyIssuer: "payment-processor.com",
+        keyExpiration: "2025-11-11",
+        issuer: "qrCrypto.com",
+        subject: "my-ecommerce.com",
+        expiresIn: "5m",
+      },
+    );
+
+    expect(token).toBeDefined();
+  });
+
   test("Should read payment instruction token", async () => {
     const builder = new PaymentInstructionsBuilder();
 
@@ -99,10 +154,10 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network: NetworkCode.TRON,
-          coin: CoinCode.TRON_USDT,
+          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: false,
           amount: "100",
+          expires_at: new Date().valueOf() + 5 * 60 * 1000,
         },
       },
       commonKeys.secretKey,
@@ -140,10 +195,10 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network: NetworkCode.TRON,
-          coin: CoinCode.TRON_USDT,
+          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: false,
           amount: "100",
+          expires_at: new Date().valueOf() + 5 * 60 * 1000,
         },
       },
       commonKeys.secretKey,
