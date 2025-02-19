@@ -31,7 +31,6 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  CoinCode: () => CoinCode,
   InvalidKepExpired: () => InvalidKepExpired,
   InvalidPayload: () => InvalidPayload,
   InvalidQrPaymentKeyExpired: () => InvalidQrPaymentKeyExpired,
@@ -41,40 +40,18 @@ __export(src_exports, {
   MissingKid: () => MissingKid,
   MissingKis: () => MissingKis,
   MissingSecretKey: () => MissingSecretKey,
-  NetworkCode: () => NetworkCode,
   PasetoV4Handler: () => PasetoV4Handler,
   PayInsError: () => PayInsError,
   PaymentInstructionsBuilder: () => PaymentInstructionsBuilder,
   PaymentInstructionsReader: () => PaymentInstructionsReader,
   biggerThanOrEqualZero: () => biggerThanOrEqualZero,
   biggerThanZero: () => biggerThanZero,
-  getNetworkData: () => getNetworkData,
   isAfterDate: () => isAfterDate
 });
 module.exports = __toCommonJS(src_exports);
 
 // src/payment-instruction.ts
 var superstruct = __toESM(require("superstruct"));
-
-// src/types.ts
-var NetworkCode = /* @__PURE__ */ function(NetworkCode2) {
-  NetworkCode2["BSC"] = "BSC";
-  NetworkCode2["BITCOIN"] = "BITCOIN";
-  NetworkCode2["ERC20"] = "ERC20";
-  NetworkCode2["LIGHTNING"] = "LIGHTNING";
-  NetworkCode2["LITECOIN"] = "LITECOIN";
-  NetworkCode2["POLYGON"] = "POLYGON";
-  NetworkCode2["SOLANA"] = "SOLANA";
-  NetworkCode2["TRON"] = "TRON";
-  NetworkCode2["STELLAR"] = "STELLAR";
-  return NetworkCode2;
-}({});
-var CoinCode = /* @__PURE__ */ function(CoinCode2) {
-  CoinCode2["TRON_USDT"] = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-  CoinCode2["POLYGON_USDT"] = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
-  CoinCode2["POLYGON_USDC"] = "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359";
-  return CoinCode2;
-}({});
 
 // src/utils/errors.ts
 var CODES = {
@@ -146,54 +123,7 @@ var InvalidQrPaymentKeyExpired = class extends PayInsError {
   }
 };
 
-// src/data/networks.ts
-var networkDataMap = {
-  BSC: {
-    network: "BSC",
-    name: "BNB Smart Chain (BEP20)"
-  },
-  BITCOIN: {
-    network: "BITCOIN",
-    name: "Bitcoin"
-  },
-  ERC20: {
-    network: "ERC20",
-    name: "Ethereum (ERC20)"
-  },
-  LIGHTNING: {
-    network: "LIGHTNING",
-    name: "Lightning Network"
-  },
-  LITECOIN: {
-    network: "LITECOIN",
-    name: "Litecoin"
-  },
-  POLYGON: {
-    network: "POLYGON",
-    name: "Polygon POS"
-  },
-  SOLANA: {
-    network: "SOLANA",
-    name: "Solana"
-  },
-  TRON: {
-    network: "TRON",
-    name: "Tron (TRC20)"
-  },
-  STELLAR: {
-    network: "STELLAR",
-    name: "Stellar Network"
-  }
-};
-
 // src/utils/format.ts
-function getNetworkData(network) {
-  return networkDataMap[network] ?? {
-    network,
-    name: network
-  };
-}
-__name(getNetworkData, "getNetworkData");
 function isAfterDate(date1, date2) {
   return new Date(date1) > new Date(date2);
 }
@@ -346,9 +276,9 @@ var PaymentInstructionsBuilder = class {
   *     payment: {
   *       id: "payment-id",
   *       address: "crypto-address",
-  *       network: NetworkCode.TRON,
-  *       coin: CoinCode.TRON_USDT,
+  *       network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
   *       is_open: true,
+  *       expires_at: 1739802610209,
   *     },
   *   },
   *   secretKey: "some-private-secret",
@@ -418,9 +348,9 @@ var PaymentInstructionsBuilder = class {
   *   payment: {
   *     id: "payment-id",
   *     address: "crypto-address",
-  *     network: NetworkCode.TRON,
-  *     coin: CoinCode.TRON_USDT,
+  *     network_token: ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t,
   *     is_open: true,
+  *     expires_at: 17855465854,
   *   },
   * });
   * ```
@@ -447,6 +377,28 @@ var PaymentInstructionsBuilder = class {
     }
     this.validatePayload(payload);
   }
+  /*
+  * Instruction Order Schema
+  */
+  instructionOrderSchema = superstruct.object({
+    total_amount: superstruct.refine(superstruct.string(), "total_amount", biggerThanZero),
+    coin_code: superstruct.string(),
+    description: superstruct.optional(superstruct.string()),
+    merchant: superstruct.object({
+      name: superstruct.string(),
+      description: superstruct.optional(superstruct.string()),
+      tax_id: superstruct.optional(superstruct.string()),
+      image: superstruct.optional(superstruct.string()),
+      mcc: superstruct.optional(superstruct.string())
+    }),
+    items: superstruct.optional(superstruct.array(superstruct.object({
+      description: superstruct.string(),
+      amount: superstruct.refine(superstruct.string(), "amount", biggerThanOrEqualZero),
+      unit_price: superstruct.optional(superstruct.refine(superstruct.string(), "unit_price", biggerThanOrEqualZero)),
+      quantity: superstruct.refine(superstruct.number(), "quantity", biggerThanZero),
+      coin_code: superstruct.string()
+    })))
+  });
   /**
   * Payment Instruction Payload Schema
   *
@@ -458,33 +410,14 @@ var PaymentInstructionsBuilder = class {
       id: superstruct.string(),
       address: superstruct.string(),
       address_tag: superstruct.optional(superstruct.string()),
-      network: superstruct.enums(Object.values(NetworkCode)),
-      coin: superstruct.string(),
+      network_token: superstruct.string(),
       is_open: superstruct.boolean(),
       amount: superstruct.optional(superstruct.refine(superstruct.string(), "amount", biggerThanZero)),
       min_amount: superstruct.optional(superstruct.refine(superstruct.string(), "min_amount", biggerThanZero)),
-      max_amount: superstruct.optional(superstruct.refine(superstruct.string(), "max_amount", biggerThanZero))
+      max_amount: superstruct.optional(superstruct.refine(superstruct.string(), "max_amount", biggerThanZero)),
+      expires_at: superstruct.integer()
     }),
-    order: superstruct.optional(superstruct.object({
-      total_amount: superstruct.refine(superstruct.string(), "total_amount", biggerThanZero),
-      coin_code: superstruct.string(),
-      description: superstruct.optional(superstruct.string()),
-      merchant: superstruct.object({
-        name: superstruct.string(),
-        description: superstruct.optional(superstruct.string()),
-        tax_id: superstruct.optional(superstruct.string()),
-        image_url: superstruct.optional(superstruct.string())
-      }),
-      items: superstruct.refine(superstruct.array(superstruct.object({
-        title: superstruct.string(),
-        description: superstruct.optional(superstruct.string()),
-        amount: superstruct.refine(superstruct.string(), "amount", biggerThanOrEqualZero),
-        unit_price: superstruct.optional(superstruct.refine(superstruct.string(), "unit_price", biggerThanOrEqualZero)),
-        quantity: superstruct.refine(superstruct.number(), "quantity", biggerThanZero),
-        coin_code: superstruct.string(),
-        image_url: superstruct.optional(superstruct.string())
-      })), "items", (value) => value.length > 0)
-    }))
+    order: superstruct.optional(this.instructionOrderSchema)
   });
   /**
   * URL Payload Schema
@@ -493,7 +426,9 @@ var PaymentInstructionsBuilder = class {
   *
   */
   payloadUrlSchema = superstruct.object({
-    url: superstruct.string()
+    url: superstruct.string(),
+    payment_options: superstruct.optional(superstruct.array(superstruct.string())),
+    order: superstruct.optional(this.instructionOrderSchema)
   });
   /**
   * Validate payload of the payment instruction
@@ -628,7 +563,6 @@ var PaymentInstructionsReader = class {
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  CoinCode,
   InvalidKepExpired,
   InvalidPayload,
   InvalidQrPaymentKeyExpired,
@@ -638,14 +572,12 @@ var PaymentInstructionsReader = class {
   MissingKid,
   MissingKis,
   MissingSecretKey,
-  NetworkCode,
   PasetoV4Handler,
   PayInsError,
   PaymentInstructionsBuilder,
   PaymentInstructionsReader,
   biggerThanOrEqualZero,
   biggerThanZero,
-  getNetworkData,
   isAfterDate
 });
 //# sourceMappingURL=index.js.map

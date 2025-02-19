@@ -1,24 +1,10 @@
 import * as paseto from 'paseto';
 import { ConsumeOptions, ProduceOptions } from 'paseto';
 
-declare enum NetworkCode {
-    BSC = "BSC",
-    BITCOIN = "BITCOIN",
-    ERC20 = "ERC20",
-    LIGHTNING = "LIGHTNING",
-    LITECOIN = "LITECOIN",
-    POLYGON = "POLYGON",
-    SOLANA = "SOLANA",
-    TRON = "TRON",
-    STELLAR = "STELLAR"
-}
-declare enum CoinCode {
-    TRON_USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-    POLYGON_USDT = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-    POLYGON_USDC = "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
-}
 interface UrlPayload {
     url: string;
+    payment_options?: string[];
+    order?: InstructionOrder;
 }
 interface InstructionPayload {
     payment: InstructionPayment;
@@ -28,34 +14,33 @@ interface InstructionPayment {
     id: string;
     address: string;
     address_tag?: string;
-    network: NetworkCode;
-    coin: CoinCode;
+    network_token: string;
     is_open: boolean;
     amount?: string;
     min_amount?: string;
     max_amount?: string;
+    expires_at: number;
 }
 interface InstructionMerchant {
     name: string;
     description?: string;
     tax_id?: string;
-    image_url?: string;
+    image?: string;
+    mcc?: string;
 }
 interface InstructionOrder {
     total_amount: string;
     coin_code: string;
     description?: string;
-    items?: InstructionItem[];
     merchant?: InstructionMerchant;
+    items?: InstructionItem[];
 }
 interface InstructionItem {
-    title: string;
-    description?: string;
+    description: string;
     amount: string;
+    coin_code: string;
     unit_price?: string;
     quantity?: number;
-    coin_code: string;
-    image_url?: string;
 }
 interface TokenPayload {
     iss: string;
@@ -123,9 +108,9 @@ declare class PaymentInstructionsBuilder {
      *     payment: {
      *       id: "payment-id",
      *       address: "crypto-address",
-     *       network: NetworkCode.TRON,
-     *       coin: CoinCode.TRON_USDT,
+     *       network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
      *       is_open: true,
+     *       expires_at: 1739802610209,
      *     },
      *   },
      *   secretKey: "some-private-secret",
@@ -160,15 +145,16 @@ declare class PaymentInstructionsBuilder {
      *   payment: {
      *     id: "payment-id",
      *     address: "crypto-address",
-     *     network: NetworkCode.TRON,
-     *     coin: CoinCode.TRON_USDT,
+     *     network_token: ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t,
      *     is_open: true,
+     *     expires_at: 17855465854,
      *   },
      * });
      * ```
      */
     validatePayload(payload: InstructionPayload | UrlPayload): void;
     private validateParameters;
+    private instructionOrderSchema;
     /**
      * Payment Instruction Payload Schema
      *
@@ -302,7 +288,6 @@ declare class InvalidQrPaymentKeyIssuer extends PayInsError {
 declare class InvalidQrPaymentKeyExpired extends PayInsError {
 }
 
-declare function getNetworkData(network: string | NetworkCode): any;
 declare function isAfterDate(date1: string, date2: string): boolean;
 
 type AsymetricKey = "paserk";
@@ -399,4 +384,4 @@ declare class PasetoV4Handler {
 declare function biggerThanZero(value: string | number): boolean;
 declare function biggerThanOrEqualZero(value: string): boolean;
 
-export { CoinCode, type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, type InstructionPayment, InvalidKepExpired, InvalidPayload, InvalidQrPaymentKeyExpired, InvalidQrPaymentKeyId, InvalidQrPaymentKeyIssuer, InvalidQrPaymentToken, MissingKid, MissingKis, MissingSecretKey, NetworkCode, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, type ReadOptions, type TokenCreateOptions, type TokenPayload, type TokenPublicKeyOptions, type UrlPayload, biggerThanOrEqualZero, biggerThanZero, getNetworkData, isAfterDate };
+export { type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, type InstructionPayment, InvalidKepExpired, InvalidPayload, InvalidQrPaymentKeyExpired, InvalidQrPaymentKeyId, InvalidQrPaymentKeyIssuer, InvalidQrPaymentToken, MissingKid, MissingKis, MissingSecretKey, PasetoV4Handler, PayInsError, PaymentInstructionsBuilder, PaymentInstructionsReader, type ReadOptions, type TokenCreateOptions, type TokenPayload, type TokenPublicKeyOptions, type UrlPayload, biggerThanOrEqualZero, biggerThanZero, isAfterDate };
