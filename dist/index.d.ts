@@ -230,7 +230,7 @@ declare class PaymentInstructionsReader {
      * const reader = new PaymentInstructionsReader();
      *
      * reader.read({
-     *    qrPayment: "qr-payment;keyIssuer;keyId;v4.public....",
+     *    qrPayment: "naspip;keyIssuer;keyId;v4.public....",
      *    publicKey: "some-public-key",
      *    issuerDomain: "qrCrypto.com",
      *    options: { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
