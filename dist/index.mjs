@@ -277,7 +277,7 @@ var PaymentInstructionsBuilder = class {
       assertion: options?.assertion
     });
     return [
-      "qr-payment",
+      "naspip",
       options.keyIssuer,
       options.keyId,
       pasetoToken
@@ -427,13 +427,13 @@ var PaymentInstructionsReader = class {
   }
   decode(qrPayment) {
     const decoded = qrPayment.split(";");
-    const isValidQr = decoded.length == 4 && decoded[0] == "qr-payment";
+    const isValidQr = decoded.length == 4 && decoded[0] == "naspip";
     if (!isValidQr) {
-      throw new InvalidQrPaymentToken("Invalid 'qr-payment' token prefix");
+      throw new InvalidQrPaymentToken("Invalid naspip token prefix");
     }
     const [prefix, keyIssuer, keyId, token] = decoded;
     if (!token) {
-      throw new InvalidQrPaymentToken("Invalid 'qr-payment' token");
+      throw new InvalidQrPaymentToken("Invalid naspip token");
     }
     return {
       prefix,
@@ -463,7 +463,7 @@ var PaymentInstructionsReader = class {
   * const reader = new PaymentInstructionsReader();
   *
   * reader.read({
-  *    qrPayment: "qr-payment;keyIssuer;keyId;v4.public....",
+  *    qrPayment: "naspip;keyIssuer;keyId;v4.public....",
   *    publicKey: "some-public-key",
   *    issuerDomain: "qrCrypto.com",
   *    options: { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
