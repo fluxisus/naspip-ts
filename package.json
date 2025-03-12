@@ -39,6 +39,8 @@
   },
   "scripts": {
     "build": "tsup ./src/index.ts --format cjs,esm --dts",
+    "build:script": "tsup ./scripts/index.ts --format cjs,esm",
+    "protoc": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=. ./src/encoding/protobuf/model.proto",
     "clean": "rm -rf dist",
     "clean-modules": "rm -rf node_modules",
     "commit": "commit/cli.js",
@@ -52,8 +54,10 @@
     "update": "npx npm-check-updates"
   },
   "dependencies": {
+    "ms": "^2.1.3",
     "paseto": "^3.1.4",
-    "superstruct": "^2.0.2"
+    "superstruct": "^2.0.2",
+    "ts-proto": "^2.6.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
