@@ -7,15 +7,15 @@ export interface UrlPayload {
 }
 
 export interface InstructionPayload {
-  payment: InstructionPayment;
+  payment: PaymentInstruction;
   order?: InstructionOrder;
 }
 
-export interface InstructionPayment {
+export interface PaymentInstruction {
   id: string;
   address: string;
   address_tag?: string;
-  network_token: string;
+  unique_asset_id: string;
   is_open: boolean;
   amount?: string;
   min_amount?: string;
@@ -32,7 +32,7 @@ export interface InstructionMerchant {
 }
 
 export interface InstructionOrder {
-  total_amount: string;
+  total: string;
   coin_code: string;
   description?: string;
   merchant?: InstructionMerchant;
@@ -48,17 +48,17 @@ export interface InstructionItem {
 }
 
 export interface TokenPayload {
-  iss: string;
+  iss?: string;
   sub?: string;
   aud?: string;
-  iat: string;
-  exp: string;
+  iat?: string;
+  exp?: string;
   nbf?: string;
   jti?: string;
   kid: string;
   kep: string;
   kis: string;
-  payload: InstructionPayload | UrlPayload;
+  data: InstructionPayload | UrlPayload;
 }
 
 export interface TokenCreateOptions extends TokenPublicKeyOptions {
@@ -79,4 +79,11 @@ export interface ReadOptions extends ConsumeOptions<true> {
   keyId?: string;
   keyIssuer?: string;
   ignoreKeyExp?: boolean;
+}
+
+export interface PasetoDecodeResult<T = Record<string, unknown>> {
+  footer?: Buffer;
+  payload?: T;
+  purpose: "local" | "public";
+  version: string;
 }

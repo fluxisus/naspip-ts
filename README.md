@@ -23,3 +23,46 @@ This **protocol** seeks to solve the two problems mentioned above, **standardize
 This protocol proposes a standard format of the information to be shared between collector/payer and an asymmetric signature (`private/public key pair`) that allows validating the information.
 
 This protocol will facilitate and speed up the integration of new platforms to use crypto assets as payment methods.
+
+## Protocol Buffers Setup
+
+### Installation
+
+1. Install the protocol buffer compiler (protoc):
+
+```bash
+# Ubuntu/Debian
+sudo apt install -y protobuf-compiler
+
+# MacOS
+brew install protobuf
+
+# Verify installation
+protoc --version
+```
+
+2. Install Node libraries:
+
+```bash
+npm run install
+```
+
+### Usage
+
+1. The protocol buffer definitions are in `src/encoding/protobuf/model.proto`
+
+2. To compile the protocol buffer definitions:
+
+```bash
+# From the project root
+npm run protoc
+```
+
+3. The generated code will be placed in the same directory as the .proto file
+
+### Development
+
+When modifying the protocol buffer definitions:
+1. Edit `src/encoding/protobuf/model.proto`
+2. Recompile using the protoc command above
+3. The generated TypeScript code will be updated automatically

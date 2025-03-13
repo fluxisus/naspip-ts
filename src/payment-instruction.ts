@@ -4,7 +4,6 @@ import {
   InstructionPayload,
   ReadOptions,
   TokenCreateOptions,
-  TokenPayload,
   TokenPublicKeyOptions,
   UrlPayload,
 } from "./types";
@@ -108,14 +107,14 @@ export class PaymentInstructionsBuilder {
     }
 
     const payload = {
-      payload: data,
+      data,
       kid: options.keyId,
       kis: options.keyIssuer,
       kep: options.keyExpiration,
     };
 
     const pasetoToken = await this.pasetoHandler.sign(payload, secretKey, {
-      issuer: options.issuer ?? options.keyIssuer,
+      issuer: options.issuer,
       expiresIn: options?.expiresIn || "10m",
       kid: options.keyId,
       subject: options?.subject,
@@ -194,11 +193,7 @@ export class PaymentInstructionsBuilder {
    * Instruction Order Schema
    */
   private instructionOrderSchema = superstruct.object({
-    total_amount: superstruct.refine(
-      superstruct.string(),
-      "total_amount",
-      biggerThanZero,
-    ),
+    total: superstruct.refine(superstruct.string(), "total", biggerThanZero),
     coin_code: superstruct.string(),
     description: superstruct.optional(superstruct.string()),
     merchant: superstruct.object({
@@ -246,7 +241,7 @@ export class PaymentInstructionsBuilder {
       id: superstruct.string(),
       address: superstruct.string(),
       address_tag: superstruct.optional(superstruct.string()),
-      network_token: superstruct.string(),
+      unique_asset_id: superstruct.string(),
       is_open: superstruct.boolean(),
       amount: superstruct.optional(
         superstruct.refine(superstruct.string(), "amount", biggerThanZero),
@@ -291,7 +286,7 @@ export class PaymentInstructionsBuilder {
     if (errors) {
       const [failure] = errors.failures();
       throw new InvalidPayload(
-        failure?.message ?? "Payload does not match the expected schema",
+        `${errors.path.join("_")}: ${failure?.message ?? "Payload does not match the expected schema"}`,
       );
     }
 
@@ -340,8 +335,8 @@ export class PaymentInstructionsReader {
     this.pasetoHandler = new PasetoV4Handler();
   }
 
-  public decode(qrPayment: string) {
-    const decoded = qrPayment.split(";");
+  public decode(naspipToken: string) {
+    const decoded = naspipToken.split(";");
 
     const isValidQr = decoded.length == 4 && decoded[0] == "naspip";
 
@@ -418,17 +413,13 @@ export class PaymentInstructionsReader {
   }) {
     const decodedQr = this.decode(qrPayment);
 
-    const data = await this.pasetoHandler.verify<TokenPayload>(
-      decodedQr.token,
-      publicKey,
-      {
-        ...options,
-        complete: true,
-        ignoreExp: false,
-        ignoreIat: false,
-        assertion: publicKey,
-      },
-    );
+    const data = await this.pasetoHandler.verify(decodedQr.token, publicKey, {
+      ...options,
+      complete: true,
+      ignoreExp: false,
+      ignoreIat: false,
+      assertion: publicKey,
+    });
 
     if (options?.keyId && options.keyId !== data.payload.kid) {
       throw new InvalidQrPaymentKeyId("Invalid Key ID");
