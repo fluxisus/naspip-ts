@@ -80,3 +80,10 @@ export interface ReadOptions extends ConsumeOptions<true> {
   keyIssuer?: string;
   ignoreKeyExp?: boolean;
 }
+
+export interface PasetoDecodeResult<T = Record<string, unknown>> {
+  footer?: Buffer;
+  payload?: T;
+  purpose: "local" | "public";
+  version: string;
+}

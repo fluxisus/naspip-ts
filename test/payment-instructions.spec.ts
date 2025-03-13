@@ -24,7 +24,7 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+          unique_asset_id: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: true,
           expires_at: new Date().valueOf() + 5 * 60 * 1000,
         },
@@ -50,7 +50,7 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+          unique_asset_id: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: false,
           amount: "100",
           expires_at: new Date().valueOf() + 5 * 60 * 1000,
@@ -126,7 +126,7 @@ describe("Payment Instructions Classes Test", () => {
           "npolygon_tcontract_address_usdt",
         ],
         order: {
-          total_amount: "1000",
+          total: "1000",
           coin_code: "USD",
           description: "T-Shirt",
           merchant: { name: "Ecommerce" },
@@ -154,7 +154,7 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+          unique_asset_id: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: false,
           amount: "100",
           expires_at: new Date().valueOf() + 5 * 60 * 1000,
@@ -195,7 +195,7 @@ describe("Payment Instructions Classes Test", () => {
         payment: {
           id: "payment-id",
           address: "crypto-address",
-          network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+          unique_asset_id: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
           is_open: false,
           amount: "100",
           expires_at: new Date().valueOf() + 5 * 60 * 1000,

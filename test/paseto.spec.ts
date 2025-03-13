@@ -2,6 +2,7 @@ import {
   PaymentInstructionsBuilder,
   PaymentInstructionsReader,
 } from "../src/payment-instruction";
+import { UrlPayload } from "../src/types";
 import { PasetoV4Handler } from "../src/utils";
 
 let paseto: PasetoV4Handler;
@@ -44,23 +45,32 @@ describe("Paseto Test", () => {
   test("Should sign token and verify it", async () => {
     const signed = await paseto.sign(
       {
-        payload: "test",
+        kid: "key-id-one",
+        kis: "payment-processor.com",
+        kep: "2025-11-11T00:00:00.000Z",
+        data: { url: "test" },
       },
       commonKeys.secretKey,
+      {
+        expiresIn: "5m",
+      },
     );
 
     const verified = await paseto.verify(signed, commonKeys.publicKey);
 
     expect(signed).toBeDefined();
     expect(verified).toBeDefined();
-    expect(verified.payload).toBe("test");
+    expect((verified.payload?.data as UrlPayload).url).toBe("test");
   });
 
   test("Should fail to sign and retrieve a token", async () => {
     expect(async () => {
       await paseto.sign(
         {
-          payload: "test",
+          kid: "key-id-one",
+          kis: "payment-processor.com",
+          kep: "2025-11-11T00:00:00.000Z",
+          data: { url: "test" },
         },
         "not-secret-key",
       );
@@ -82,7 +92,10 @@ describe("Paseto Test", () => {
   test("Should not verify a token with expired time", async () => {
     const expiredToken = await paseto.sign(
       {
-        payload: "test",
+        kid: "key-id-one",
+        kis: "payment-processor.com",
+        kep: "2025-11-11T00:00:00.000Z",
+        data: { url: "test" },
       },
       commonKeys.secretKey,
       { expiresIn: "0s" },
@@ -110,7 +123,7 @@ async function createTestToken() {
       payment: {
         id: "payment-id",
         address: "crypto-address",
-        network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        unique_asset_id: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
         is_open: false,
         amount: "100",
         expires_at: new Date().valueOf() + 5 * 60 * 1000,

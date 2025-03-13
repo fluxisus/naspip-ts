@@ -29,10 +29,13 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/index.ts
-var src_exports = {};
-__export(src_exports, {
+var index_exports = {};
+__export(index_exports, {
   InvalidKepExpired: () => InvalidKepExpired,
   InvalidPasetoClaim: () => InvalidPasetoClaim,
+  InvalidPasetoPurpose: () => InvalidPasetoPurpose,
+  InvalidPasetoToken: () => InvalidPasetoToken,
+  InvalidPasetoVersion: () => InvalidPasetoVersion,
   InvalidPayload: () => InvalidPayload,
   InvalidQrPaymentKeyExpired: () => InvalidQrPaymentKeyExpired,
   InvalidQrPaymentKeyId: () => InvalidQrPaymentKeyId,
@@ -49,7 +52,7 @@ __export(src_exports, {
   biggerThanZero: () => biggerThanZero,
   isAfterDate: () => isAfterDate
 });
-module.exports = __toCommonJS(src_exports);
+module.exports = __toCommonJS(index_exports);
 
 // src/payment-instruction.ts
 var superstruct = __toESM(require("superstruct"));
@@ -65,7 +68,10 @@ var CODES = {
   InvalidQrPaymentKeyId: "ERR_INVALID_QR_PAYMENT_KID",
   InvalidQrPaymentKeyIssuer: "ERR_INVALID_QR_PAYMENT_KIS",
   InvalidQrPaymentKeyExpired: "ERR_INVALID_QR_PAYMENT_KEP",
-  InvalidPasetoClaim: "ERR_INVALID_PASETO_CLAIM"
+  InvalidPasetoClaim: "ERR_INVALID_PASETO_CLAIM",
+  InvalidPasetoToken: "ERR_INVALID_PASETO_TOKEN",
+  InvalidPasetoVersion: "ERR_INVALID_PASETO_VERSION",
+  InvalidPasetoPurpose: "ERR_INVALID_PASETO_PURPOSE"
 };
 var PayInsError = class extends Error {
   static {
@@ -127,6 +133,21 @@ var InvalidQrPaymentKeyExpired = class extends PayInsError {
 var InvalidPasetoClaim = class extends PayInsError {
   static {
     __name(this, "InvalidPasetoClaim");
+  }
+};
+var InvalidPasetoToken = class extends PayInsError {
+  static {
+    __name(this, "InvalidPasetoToken");
+  }
+};
+var InvalidPasetoVersion = class extends PayInsError {
+  static {
+    __name(this, "InvalidPasetoVersion");
+  }
+};
+var InvalidPasetoPurpose = class extends PayInsError {
+  static {
+    __name(this, "InvalidPasetoPurpose");
   }
 };
 
@@ -1889,18 +1910,38 @@ var PasetoV4Handler = class {
   * `{ ...data, footer: string | Record<string, any> }`
   */
   decode(token) {
-    const data = (0, import_paseto.decode)(token);
-    try {
-      const footer = JSON.parse(data.footer?.toString() ?? "");
-      return {
-        ...data,
-        footer
-      };
-    } catch {
+    const data = token.split(".");
+    if (data.length !== 3 && data.length !== 4) {
+      throw new InvalidPasetoToken("token is not a PASETO formatted value");
     }
+    const [version, purpose, payload, encodedFooter] = data;
+    if (version !== "v4") {
+      throw new InvalidPasetoVersion("unsupported PASETO version");
+    }
+    if (purpose !== "local" && purpose !== "public") {
+      throw new InvalidPasetoPurpose("unsupported PASETO purpose");
+    }
+    const footer = encodedFooter ? Buffer.from(encodedFooter, "base64") : void 0;
+    if (purpose === "local") {
+      return {
+        footer,
+        version,
+        purpose
+      };
+    }
+    let raw;
+    try {
+      raw = Buffer.from(payload, "base64").subarray(0, -64);
+    } catch {
+      throw new InvalidPasetoToken("token is not a PASETO formatted value");
+    }
+    const payloadDecoded = PasetoTokenData.decode(raw);
+    const payloadToken = PasetoTokenData.toJSON(payloadDecoded);
     return {
-      ...data,
-      footer: data.footer?.toString()
+      footer,
+      version,
+      purpose,
+      payload: payloadToken
     };
   }
   /**
@@ -2338,8 +2379,8 @@ var PaymentInstructionsReader = class {
   constructor() {
     this.pasetoHandler = new PasetoV4Handler();
   }
-  decode(qrPayment) {
-    const decoded = qrPayment.split(";");
+  decode(naspipToken) {
+    const decoded = naspipToken.split(";");
     const isValidQr = decoded.length == 4 && decoded[0] == "naspip";
     if (!isValidQr) {
       throw new InvalidQrPaymentToken("Invalid naspip token prefix");
@@ -2429,6 +2470,9 @@ var PaymentInstructionsReader = class {
 0 && (module.exports = {
   InvalidKepExpired,
   InvalidPasetoClaim,
+  InvalidPasetoPurpose,
+  InvalidPasetoToken,
+  InvalidPasetoVersion,
   InvalidPayload,
   InvalidQrPaymentKeyExpired,
   InvalidQrPaymentKeyId,

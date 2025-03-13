@@ -1,15 +1,14 @@
 import ms from "ms";
-import {
-  CompleteResult,
-  ConsumeOptions,
-  decode,
-  ProduceOptions,
-  V4,
-} from "paseto";
+import { CompleteResult, ConsumeOptions, ProduceOptions, V4 } from "paseto";
 
 import { PasetoTokenData } from "../encoding/protobuf/model";
-import { TokenPayload } from "../types";
-import { InvalidPasetoClaim } from "./errors";
+import { PasetoDecodeResult, TokenPayload } from "../types";
+import {
+  InvalidPasetoClaim,
+  InvalidPasetoPurpose,
+  InvalidPasetoToken,
+  InvalidPasetoVersion,
+} from "./errors";
 
 type AsymetricKey = "paserk";
 type PasetoTokenContext = "public";
@@ -56,17 +55,52 @@ export class PasetoV4Handler {
    * `{ ...data, footer: string | Record<string, any> }`
    */
 
-  public decode(token: string) {
-    const data = decode(token);
+  public decode(token: string): PasetoDecodeResult<TokenPayload> {
+    const data = token.split(".");
 
-    try {
-      const footer = JSON.parse(data.footer?.toString() ?? "");
-      return { ...data, footer };
-    } catch {
-      //
+    if (data.length !== 3 && data.length !== 4) {
+      throw new InvalidPasetoToken("token is not a PASETO formatted value");
     }
 
-    return { ...data, footer: data.footer?.toString() };
+    const [version, purpose, payload, encodedFooter] = data;
+
+    if (version !== "v4") {
+      throw new InvalidPasetoVersion("unsupported PASETO version");
+    }
+
+    if (purpose !== "local" && purpose !== "public") {
+      throw new InvalidPasetoPurpose("unsupported PASETO purpose");
+    }
+
+    const footer = encodedFooter
+      ? Buffer.from(encodedFooter, "base64")
+      : undefined;
+
+    if (purpose === "local") {
+      return {
+        footer,
+        version,
+        purpose,
+      };
+    }
+
+    let raw;
+    try {
+      raw = Buffer.from(payload as string, "base64").subarray(0, -64);
+    } catch {
+      throw new InvalidPasetoToken("token is not a PASETO formatted value");
+    }
+
+    const payloadDecoded = PasetoTokenData.decode(raw);
+
+    const payloadToken = PasetoTokenData.toJSON(payloadDecoded) as TokenPayload;
+
+    return {
+      footer,
+      version,
+      purpose,
+      payload: payloadToken,
+    };
   }
 
   /**

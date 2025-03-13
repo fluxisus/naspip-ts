@@ -72,6 +72,12 @@ interface ReadOptions extends ConsumeOptions<true> {
     keyIssuer?: string;
     ignoreKeyExp?: boolean;
 }
+interface PasetoDecodeResult<T = Record<string, unknown>> {
+    footer?: Buffer;
+    payload?: T;
+    purpose: "local" | "public";
+    version: string;
+}
 
 /**
  * Class to handle payment instruction token (qr-crypto token) creation with payload validation
@@ -203,7 +209,7 @@ declare class PaymentInstructionsBuilder {
 declare class PaymentInstructionsReader {
     private pasetoHandler;
     constructor();
-    decode(qrPayment: string): {
+    decode(naspipToken: string): {
         prefix: string | undefined;
         keyIssuer: string | undefined;
         keyId: string | undefined;
@@ -289,6 +295,12 @@ declare class InvalidQrPaymentKeyExpired extends PayInsError {
 }
 declare class InvalidPasetoClaim extends PayInsError {
 }
+declare class InvalidPasetoToken extends PayInsError {
+}
+declare class InvalidPasetoVersion extends PayInsError {
+}
+declare class InvalidPasetoPurpose extends PayInsError {
+}
 
 declare function isAfterDate(date1: string, date2: string): boolean;
 
@@ -330,12 +342,7 @@ declare class PasetoV4Handler {
      * @returns
      * `{ ...data, footer: string | Record<string, any> }`
      */
-    decode(token: string): {
-        footer: any;
-        payload?: Record<string, unknown> | undefined;
-        purpose: "local" | "public";
-        version: string;
-    };
+    decode(token: string): PasetoDecodeResult<TokenPayload>;
     /**
      *
      * @remarks
@@ -388,4 +395,4 @@ declare class PasetoV4Handler {
 declare function biggerThanZero(value: string | number): boolean;
 declare function biggerThanOrEqualZero(value: string): boolean;
 
-export { type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, InvalidKepExpired, InvalidPasetoClaim, InvalidPayload, InvalidQrPaymentKeyExpired, InvalidQrPaymentKeyId, InvalidQrPaymentKeyIssuer, InvalidQrPaymentToken, MissingKid, MissingKis, MissingSecretKey, PasetoV4Handler, PayInsError, type PaymentInstruction, PaymentInstructionsBuilder, PaymentInstructionsReader, type ReadOptions, type TokenCreateOptions, type TokenPayload, type TokenPublicKeyOptions, type UrlPayload, biggerThanOrEqualZero, biggerThanZero, isAfterDate };
+export { type InstructionItem, type InstructionMerchant, type InstructionOrder, type InstructionPayload, InvalidKepExpired, InvalidPasetoClaim, InvalidPasetoPurpose, InvalidPasetoToken, InvalidPasetoVersion, InvalidPayload, InvalidQrPaymentKeyExpired, InvalidQrPaymentKeyId, InvalidQrPaymentKeyIssuer, InvalidQrPaymentToken, MissingKid, MissingKis, MissingSecretKey, type PasetoDecodeResult, PasetoV4Handler, PayInsError, type PaymentInstruction, PaymentInstructionsBuilder, PaymentInstructionsReader, type ReadOptions, type TokenCreateOptions, type TokenPayload, type TokenPublicKeyOptions, type UrlPayload, biggerThanOrEqualZero, biggerThanZero, isAfterDate };

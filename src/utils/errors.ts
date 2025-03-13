@@ -9,6 +9,9 @@ const CODES = {
   InvalidQrPaymentKeyIssuer: "ERR_INVALID_QR_PAYMENT_KIS",
   InvalidQrPaymentKeyExpired: "ERR_INVALID_QR_PAYMENT_KEP",
   InvalidPasetoClaim: "ERR_INVALID_PASETO_CLAIM",
+  InvalidPasetoToken: "ERR_INVALID_PASETO_TOKEN",
+  InvalidPasetoVersion: "ERR_INVALID_PASETO_VERSION",
+  InvalidPasetoPurpose: "ERR_INVALID_PASETO_PURPOSE",
 } as const;
 
 export class PayInsError extends Error {
@@ -34,3 +37,6 @@ export class InvalidQrPaymentKeyId extends PayInsError {}
 export class InvalidQrPaymentKeyIssuer extends PayInsError {}
 export class InvalidQrPaymentKeyExpired extends PayInsError {}
 export class InvalidPasetoClaim extends PayInsError {}
+export class InvalidPasetoToken extends PayInsError {}
+export class InvalidPasetoVersion extends PayInsError {}
+export class InvalidPasetoPurpose extends PayInsError {}

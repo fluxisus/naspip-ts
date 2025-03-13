@@ -335,8 +335,8 @@ export class PaymentInstructionsReader {
     this.pasetoHandler = new PasetoV4Handler();
   }
 
-  public decode(qrPayment: string) {
-    const decoded = qrPayment.split(";");
+  public decode(naspipToken: string) {
+    const decoded = naspipToken.split(";");
 
     const isValidQr = decoded.length == 4 && decoded[0] == "naspip";
 
