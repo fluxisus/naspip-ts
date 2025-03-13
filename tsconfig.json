@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "crypto-payments-standard",
+  "display": "naspip-ts",
   "compilerOptions": {
     "allowJs": true,
     "moduleResolution": "node",

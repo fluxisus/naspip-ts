@@ -1,10 +1,10 @@
 {
-  "name": "crypto-payments-standard",
-  "version": "0.1.0",
-  "description": "Typescript standard library for cryptocurrency payments",
+  "name": "naspip-ts",
+  "version": "1.0.0",
+  "description": "Typescript standard library for NASPIP(Network-Agnostic Standard Payment Instruction Protocol)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NachoNorris/crypto-payments-standard.git"
+    "url": "git+https://github.com/NachoNorris/naspip-ts.git"
   },
   "keywords": [
     "crypto",
@@ -17,9 +17,9 @@
   "author": "Ariel Brassesco, Ignacio Norris Perret",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/NachoNorris/crypto-payments-standard/issues"
+    "url": "https://github.com/NachoNorris/naspip-ts/issues"
   },
-  "homepage": "https://github.com/NachoNorris/crypto-payments-standard#readme",
+  "homepage": "https://github.com/NachoNorris/naspip-ts#readme",
   "bin": {
     "commit": "commit/cli.js"
   },
