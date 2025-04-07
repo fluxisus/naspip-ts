@@ -6,10 +6,6 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -26,36 +22,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  InvalidKepExpired: () => InvalidKepExpired,
-  InvalidPasetoClaim: () => InvalidPasetoClaim,
-  InvalidPasetoPurpose: () => InvalidPasetoPurpose,
-  InvalidPasetoToken: () => InvalidPasetoToken,
-  InvalidPasetoVersion: () => InvalidPasetoVersion,
-  InvalidPayload: () => InvalidPayload,
-  InvalidQrPaymentKeyExpired: () => InvalidQrPaymentKeyExpired,
-  InvalidQrPaymentKeyId: () => InvalidQrPaymentKeyId,
-  InvalidQrPaymentKeyIssuer: () => InvalidQrPaymentKeyIssuer,
-  InvalidQrPaymentToken: () => InvalidQrPaymentToken,
-  MissingKid: () => MissingKid,
-  MissingKis: () => MissingKis,
-  MissingSecretKey: () => MissingSecretKey,
-  PasetoV4Handler: () => PasetoV4Handler,
-  PayInsError: () => PayInsError,
-  PaymentInstructionsBuilder: () => PaymentInstructionsBuilder,
-  PaymentInstructionsReader: () => PaymentInstructionsReader,
-  biggerThanOrEqualZero: () => biggerThanOrEqualZero,
-  biggerThanZero: () => biggerThanZero,
-  isAfterDate: () => isAfterDate
-});
-module.exports = __toCommonJS(index_exports);
-
-// src/payment-instruction.ts
-var superstruct = __toESM(require("superstruct"));
 
 // src/utils/errors.ts
 var CODES = {
@@ -85,31 +51,6 @@ var PayInsError = class extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 };
-var InvalidPayload = class extends PayInsError {
-  static {
-    __name(this, "InvalidPayload");
-  }
-};
-var MissingSecretKey = class extends PayInsError {
-  static {
-    __name(this, "MissingSecretKey");
-  }
-};
-var MissingKid = class extends PayInsError {
-  static {
-    __name(this, "MissingKid");
-  }
-};
-var MissingKis = class extends PayInsError {
-  static {
-    __name(this, "MissingKis");
-  }
-};
-var InvalidKepExpired = class extends PayInsError {
-  static {
-    __name(this, "InvalidKepExpired");
-  }
-};
 var InvalidQrPaymentToken = class extends PayInsError {
   static {
     __name(this, "InvalidQrPaymentToken");
@@ -123,11 +64,6 @@ var InvalidQrPaymentKeyId = class extends PayInsError {
 var InvalidQrPaymentKeyIssuer = class extends PayInsError {
   static {
     __name(this, "InvalidQrPaymentKeyIssuer");
-  }
-};
-var InvalidQrPaymentKeyExpired = class extends PayInsError {
-  static {
-    __name(this, "InvalidQrPaymentKeyExpired");
   }
 };
 var InvalidPasetoClaim = class extends PayInsError {
@@ -2141,243 +2077,15 @@ var PasetoV4Handler = class {
   }
 };
 
-// src/utils/validate.ts
-function biggerThanZero(value) {
-  return parseFloat(value.toString()) > 0;
-}
-__name(biggerThanZero, "biggerThanZero");
-function biggerThanOrEqualZero(value) {
-  return parseFloat(value) >= 0;
-}
-__name(biggerThanOrEqualZero, "biggerThanOrEqualZero");
-
 // src/payment-instruction.ts
-var PaymentInstructionsBuilder = class {
-  static {
-    __name(this, "PaymentInstructionsBuilder");
-  }
-  pasetoHandler;
-  constructor() {
-    this.pasetoHandler = new PasetoV4Handler();
-  }
-  /**
-  * Create a QR-Crypto token
-  *
-  * @param data - InstructionPayload | UrlPayload;
-  * @param secretKey - string;
-  * @param options - TokenCreateOptions;
-  * @param [warnings=true]
-  *
-  * @returns
-  * `string`
-  *
-  *
-  * @example
-  * ```ts
-  * const builder = new PaymentInstructionsBuilder();
-  *
-  * await builder.create(
-  *   {
-  *     payment: {
-  *       id: "payment-id",
-  *       address: "crypto-address",
-  *       network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-  *       is_open: true,
-  *       expires_at: 1739802610209,
-  *     },
-  *   },
-  *   secretKey: "some-private-secret",
-  *   {
-  *     issuer: "client.com",
-  *     expiresIn: "1h",
-  *     keyId: "key-id-one",
-  *     keyExpiration: "2025-12-12T01:00:00.000Z",
-  *     keyIssuer: "my-bussines.com",
-  *   }
-  * });
-  *
-  * returns
-  * ```ts
-  * "qr-crypto.v4.public...."
-  * ```
-  */
-  async create(data, secretKey, options, warnings = true) {
-    this.validateParameters({
-      payload: data,
-      secretKey,
-      optionsKey: {
-        keyId: options.keyId,
-        keyIssuer: options.keyIssuer,
-        keyExpiration: options.keyExpiration
-      }
-    });
-    if (warnings && !options?.expiresIn) {
-      console.warn(`\x1B[33m[WARNING]\x1B[0m: Field 'expiresIn' not provided in QR-Crypto token creation.
-         It is recommended to set an expiration time.
-         Use default of 10 minutes.`);
-    }
-    const payload = {
-      data,
-      kid: options.keyId,
-      kis: options.keyIssuer,
-      kep: options.keyExpiration
-    };
-    const pasetoToken = await this.pasetoHandler.sign(payload, secretKey, {
-      issuer: options.issuer,
-      expiresIn: options?.expiresIn || "10m",
-      kid: options.keyId,
-      subject: options?.subject,
-      audience: options?.audience,
-      assertion: options?.assertion
-    });
-    return [
-      "naspip",
-      options.keyIssuer,
-      options.keyId,
-      pasetoToken
-    ].join(";");
-  }
-  /**
-  * Validate the payload of the payment instruction or url
-  *
-  * @param payload - InstructionPayload | UrlPayload
-  *
-  * @returns
-  * `void` | `Error`
-  *
-  * @example
-  * ```ts
-  * const builder = new PaymentInstructionsBuilder();
-  *
-  * builder.validatePayload({
-  *   payment: {
-  *     id: "payment-id",
-  *     address: "crypto-address",
-  *     network_token: ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t,
-  *     is_open: true,
-  *     expires_at: 17855465854,
-  *   },
-  * });
-  * ```
-  */
-  validatePayload(payload) {
-    if ("url" in payload) {
-      return this.validateUrlPayload(payload);
-    }
-    this.validatePaymentInstructionPayload(payload);
-  }
-  validateParameters({ payload, secretKey, optionsKey }) {
-    if (!secretKey) {
-      throw new MissingSecretKey("secretKey is required for token creation");
-    }
-    if (!optionsKey.keyId) {
-      throw new MissingKid("kid is required for token creation");
-    }
-    if (!optionsKey.keyIssuer) {
-      throw new MissingKis("kis is required for token creation");
-    }
-    const isKeyExpired = isAfterDate((/* @__PURE__ */ new Date()).toISOString(), optionsKey.keyExpiration);
-    if (isKeyExpired) {
-      throw new InvalidKepExpired("kid is expired for token creation");
-    }
-    this.validatePayload(payload);
-  }
-  /*
-  * Instruction Order Schema
-  */
-  instructionOrderSchema = superstruct.object({
-    total: superstruct.refine(superstruct.string(), "total", biggerThanZero),
-    coin_code: superstruct.string(),
-    description: superstruct.optional(superstruct.string()),
-    merchant: superstruct.object({
-      name: superstruct.string(),
-      description: superstruct.optional(superstruct.string()),
-      tax_id: superstruct.optional(superstruct.string()),
-      image: superstruct.optional(superstruct.string()),
-      mcc: superstruct.optional(superstruct.string())
-    }),
-    items: superstruct.optional(superstruct.array(superstruct.object({
-      description: superstruct.string(),
-      amount: superstruct.refine(superstruct.string(), "amount", biggerThanOrEqualZero),
-      unit_price: superstruct.optional(superstruct.refine(superstruct.string(), "unit_price", biggerThanOrEqualZero)),
-      quantity: superstruct.refine(superstruct.number(), "quantity", biggerThanZero),
-      coin_code: superstruct.string()
-    })))
-  });
-  /**
-  * Payment Instruction Payload Schema
-  *
-  * @private
-  *
-  */
-  payloadSchema = superstruct.object({
-    payment: superstruct.object({
-      id: superstruct.string(),
-      address: superstruct.string(),
-      address_tag: superstruct.optional(superstruct.string()),
-      unique_asset_id: superstruct.string(),
-      is_open: superstruct.boolean(),
-      amount: superstruct.optional(superstruct.refine(superstruct.string(), "amount", biggerThanZero)),
-      min_amount: superstruct.optional(superstruct.refine(superstruct.string(), "min_amount", biggerThanZero)),
-      max_amount: superstruct.optional(superstruct.refine(superstruct.string(), "max_amount", biggerThanZero)),
-      expires_at: superstruct.integer()
-    }),
-    order: superstruct.optional(this.instructionOrderSchema)
-  });
-  /**
-  * URL Payload Schema
-  *
-  * @private
-  *
-  */
-  payloadUrlSchema = superstruct.object({
-    url: superstruct.string(),
-    payment_options: superstruct.optional(superstruct.array(superstruct.string())),
-    order: superstruct.optional(this.instructionOrderSchema)
-  });
-  /**
-  * Validate payload of the payment instruction
-  *
-  * @private
-  * @param payload - InstructionPayload
-  *
-  * @returns
-  * `void` | `Error`
-  */
-  validatePaymentInstructionPayload(payload) {
-    const [errors] = superstruct.validate(payload, this.payloadSchema);
-    if (errors) {
-      const [failure] = errors.failures();
-      throw new InvalidPayload(`${errors.path.join("_")}: ${failure?.message ?? "Payload does not match the expected schema"}`);
-    }
-    if (!payload.payment.is_open && !payload.payment.amount) {
-      throw new InvalidPayload("payment.amount is required when 'is_open' is false");
-    }
-  }
-  /**
-  * Validate URL Payload
-  *
-  * @private
-  * @param payload - UrlPayload
-  *
-  * @returns
-  * `void` | `Error`
-  */
-  validateUrlPayload(payload) {
-    const [errors] = superstruct.validate(payload, this.payloadUrlSchema);
-    if (errors) {
-      const [failure] = errors.failures();
-      throw new InvalidPayload(failure?.message ?? "Payload does not match the expected schema");
-    }
-  }
-};
+var superstruct = __toESM(require("superstruct"));
 var PaymentInstructionsReader = class {
   static {
     __name(this, "PaymentInstructionsReader");
   }
   pasetoHandler;
-  constructor() {
-    this.pasetoHandler = new PasetoV4Handler();
+  constructor(pasetoHandler) {
+    this.pasetoHandler = pasetoHandler;
   }
   decode(naspipToken) {
     const decoded = naspipToken.split(";");
@@ -2445,8 +2153,8 @@ var PaymentInstructionsReader = class {
   * }
   * ```
   */
-  async read({ qrPayment, publicKey, options }) {
-    const decodedQr = this.decode(qrPayment);
+  async read({ naspipToken, publicKey, options }) {
+    const decodedQr = this.decode(naspipToken);
     const data = await this.pasetoHandler.verify(decodedQr.token, publicKey, {
       ...options,
       complete: true,
@@ -2466,27 +2174,24 @@ var PaymentInstructionsReader = class {
     return data;
   }
 };
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  InvalidKepExpired,
-  InvalidPasetoClaim,
-  InvalidPasetoPurpose,
-  InvalidPasetoToken,
-  InvalidPasetoVersion,
-  InvalidPayload,
-  InvalidQrPaymentKeyExpired,
-  InvalidQrPaymentKeyId,
-  InvalidQrPaymentKeyIssuer,
-  InvalidQrPaymentToken,
-  MissingKid,
-  MissingKis,
-  MissingSecretKey,
-  PasetoV4Handler,
-  PayInsError,
-  PaymentInstructionsBuilder,
-  PaymentInstructionsReader,
-  biggerThanOrEqualZero,
-  biggerThanZero,
-  isAfterDate
-});
+
+// scripts/index.ts
+async function main() {
+  const naspipToken = "naspip;my-key-issuer;my-key-id;v4.public.Cg9teS1jb21wYW55LW5hbWUiGDIwMjUtMDQtMDdUMjM6NTM6NDUuOTUxWjIYMjAyNS0wNC0wN1QyMDo1Mzo0NS45NTFaQglteS1rZXktaWRKGDIwMzUtMDQtMDVUMjA6NTM6NDUuOTQ5WlINbXkta2V5LWlzc3VlclqfAQpqCgpwYXltZW50MTIzEiJUUmpFMUg4ZHh5cEtNMU5aUmR5c2JzOXdvN2h1UjRiZE56IipudHJjMjBfdFRSN05IcWplS1F4R1RDaThxOFpZNHBMOG90U3pnakxqNnQyBTEwLjUySN2L-5HhMhIxCgUxMC41MhIDVVNEGhdQYXltZW50IGZvciBYWVogc2VydmljZSIKCghNeSBTdG9yZSJr_pMJrWKqwdmjBL9Y8VV7vNKuue9rOFKVeByeUBmgC7Yf0S4scULu01Wh7cyWub-MQZrb7rfy_fvIPdzEJwo";
+  const publicKey = "k4.public.vReOu5eFs0HYCYndN_fKrJM6e_VoidRcDAyIFLAtOEg";
+  const pasetoHandler = new PasetoV4Handler();
+  const builder = new PaymentInstructionsReader(pasetoHandler);
+  const options = {
+    keyId: "my-key-id",
+    keyIssuer: "my-key-issuer"
+  };
+  const result = await builder.read({
+    naspipToken,
+    publicKey,
+    options
+  });
+  console.log("Verified payment instruction:", result.payload.data.payment);
+}
+__name(main, "main");
+main().catch(console.error);
 //# sourceMappingURL=index.js.map

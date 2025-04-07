@@ -37,8 +37,8 @@ import {
 export class PaymentInstructionsBuilder {
   private pasetoHandler: PasetoV4Handler;
 
-  constructor() {
-    this.pasetoHandler = new PasetoV4Handler();
+  constructor(pasetoHandler: PasetoV4Handler) {
+    this.pasetoHandler = pasetoHandler;
   }
 
   /**
@@ -196,13 +196,15 @@ export class PaymentInstructionsBuilder {
     total: superstruct.refine(superstruct.string(), "total", biggerThanZero),
     coin_code: superstruct.string(),
     description: superstruct.optional(superstruct.string()),
-    merchant: superstruct.object({
-      name: superstruct.string(),
-      description: superstruct.optional(superstruct.string()),
-      tax_id: superstruct.optional(superstruct.string()),
-      image: superstruct.optional(superstruct.string()),
-      mcc: superstruct.optional(superstruct.string()),
-    }),
+    merchant: superstruct.optional(
+      superstruct.object({
+        name: superstruct.string(),
+        description: superstruct.optional(superstruct.string()),
+        tax_id: superstruct.optional(superstruct.string()),
+        image: superstruct.optional(superstruct.string()),
+        mcc: superstruct.optional(superstruct.string()),
+      }),
+    ),
     items: superstruct.optional(
       superstruct.array(
         superstruct.object({
@@ -331,8 +333,8 @@ export class PaymentInstructionsBuilder {
 export class PaymentInstructionsReader {
   private pasetoHandler: PasetoV4Handler;
 
-  constructor() {
-    this.pasetoHandler = new PasetoV4Handler();
+  constructor(pasetoHandler: PasetoV4Handler) {
+    this.pasetoHandler = pasetoHandler;
   }
 
   public decode(naspipToken: string) {
@@ -403,15 +405,15 @@ export class PaymentInstructionsReader {
    * ```
    */
   public async read({
-    qrPayment,
+    naspipToken,
     publicKey,
     options,
   }: {
-    qrPayment: string;
+    naspipToken: string;
     publicKey: string;
     options?: ReadOptions;
   }) {
-    const decodedQr = this.decode(qrPayment);
+    const decodedQr = this.decode(naspipToken);
 
     const data = await this.pasetoHandler.verify(decodedQr.token, publicKey, {
       ...options,

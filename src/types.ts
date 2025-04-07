@@ -63,7 +63,7 @@ export interface TokenPayload {
 
 export interface TokenCreateOptions extends TokenPublicKeyOptions {
   issuer?: string;
-  expiresIn: string;
+  expiresIn?: string;
   subject?: string;
   audience?: string;
   assertion?: string;
