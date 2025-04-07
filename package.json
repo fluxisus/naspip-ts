@@ -12,7 +12,8 @@
     "standard",
     "library",
     "typescript",
-    "QRCodes"
+    "QRCodes",
+    "NASPIP"
   ],
   "author": "Ariel Brassesco, Ignacio Norris Perret",
   "license": "MIT",
@@ -28,7 +29,9 @@
   "module": "./dist/index.mjs",
   "files": [
     "package.json",
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "exports": {
     ".": {
@@ -51,7 +54,8 @@
     "release": "release-it",
     "test": "jest",
     "typecheck": "tsc -p tsconfig.typecheck.json",
-    "update": "npx npm-check-updates"
+    "update": "npx npm-check-updates",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "ms": "^2.1.3",
