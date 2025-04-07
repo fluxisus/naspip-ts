@@ -17,7 +17,7 @@ beforeAll(async () => {
 
 describe("Payment Instructions Classes Test", () => {
   test("Should create payment instruction token with valid payload: is_open: true", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -43,7 +43,7 @@ describe("Payment Instructions Classes Test", () => {
   });
 
   test("Should create payment instruction token with valid payload: is_open: false", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -70,7 +70,7 @@ describe("Payment Instructions Classes Test", () => {
   });
 
   test("Should create url payload token", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -91,7 +91,7 @@ describe("Payment Instructions Classes Test", () => {
   });
 
   test("Should create url payload token with options", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -116,7 +116,7 @@ describe("Payment Instructions Classes Test", () => {
   });
 
   test("Should create url payload token with options and order", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -147,7 +147,7 @@ describe("Payment Instructions Classes Test", () => {
   });
 
   test("Should read payment instruction token", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -172,10 +172,10 @@ describe("Payment Instructions Classes Test", () => {
       },
     );
 
-    const reader = new PaymentInstructionsReader();
+    const reader = new PaymentInstructionsReader(new PasetoV4Handler());
 
     const data = await reader.read({
-      qrPayment: token,
+      naspipToken: token,
       publicKey: commonKeys.publicKey,
       options: {
         keyId: "key-id-one",
@@ -188,7 +188,7 @@ describe("Payment Instructions Classes Test", () => {
   });
 
   test("Should read payment instruction token with invalid issuer domain and fail", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -213,11 +213,11 @@ describe("Payment Instructions Classes Test", () => {
       },
     );
 
-    const reader = new PaymentInstructionsReader();
+    const reader = new PaymentInstructionsReader(new PasetoV4Handler());
 
     expect(async () => {
       await reader.read({
-        qrPayment: token,
+        naspipToken: token,
         publicKey: commonKeys.publicKey,
         options: {
           keyId: "key-id-one",
@@ -229,7 +229,7 @@ describe("Payment Instructions Classes Test", () => {
   });
 
   test("Should read url payload token with invalid keyIssuer and fail", async () => {
-    const builder = new PaymentInstructionsBuilder();
+    const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
     const token = await builder.create(
       {
@@ -247,11 +247,11 @@ describe("Payment Instructions Classes Test", () => {
       },
     );
 
-    const reader = new PaymentInstructionsReader();
+    const reader = new PaymentInstructionsReader(new PasetoV4Handler());
 
     expect(async () => {
       await reader.read({
-        qrPayment: token,
+        naspipToken: token,
         publicKey: commonKeys.publicKey,
         options: {
           keyIssuer: "other-issuer.com",

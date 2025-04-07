@@ -4,7 +4,7 @@
   "description": "Typescript standard library for NASPIP(Network-Agnostic Standard Payment Instruction Protocol)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NachoNorris/naspip-ts.git"
+    "url": "git+https://github.com/fluxisus/naspip-ts.git"
   },
   "keywords": [
     "crypto",
@@ -17,9 +17,9 @@
   "author": "Ariel Brassesco, Ignacio Norris Perret",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/NachoNorris/naspip-ts/issues"
+    "url": "https://github.com/fluxisus/naspip-ts/issues"
   },
-  "homepage": "https://github.com/NachoNorris/naspip-ts#readme",
+  "homepage": "https://github.com/fluxisus/naspip-ts#readme",
   "bin": {
     "commit": "commit/cli.js"
   },

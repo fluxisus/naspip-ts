@@ -1,78 +1,39 @@
-import {
-  PaymentInstructionsBuilder,
-  PaymentInstructionsReader,
-} from "../src/payment-instruction";
-import { InstructionPayload } from "../src/types";
-//import { PasetoV4Handler } from "../src/utils";
+import { PasetoV4Handler } from "../src/utils";
+import { PaymentInstructionsReader } from "../src/payment-instruction";
+//import { InstructionPayload, TokenCreateOptions } from "../src/types";
 
 async function main() {
-  console.log("start script");
+  // Create a PASETO handler
+  const naspipToken =
+    "naspip;my-key-issuer;my-key-id;v4.public.Cg9teS1jb21wYW55LW5hbWUiGDIwMjUtMDQtMDdUMjM6NTM6NDUuOTUxWjIYMjAyNS0wNC0wN1QyMDo1Mzo0NS45NTFaQglteS1rZXktaWRKGDIwMzUtMDQtMDVUMjA6NTM6NDUuOTQ5WlINbXkta2V5LWlzc3VlclqfAQpqCgpwYXltZW50MTIzEiJUUmpFMUg4ZHh5cEtNMU5aUmR5c2JzOXdvN2h1UjRiZE56IipudHJjMjBfdFRSN05IcWplS1F4R1RDaThxOFpZNHBMOG90U3pnakxqNnQyBTEwLjUySN2L-5HhMhIxCgUxMC41MhIDVVNEGhdQYXltZW50IGZvciBYWVogc2VydmljZSIKCghNeSBTdG9yZSJr_pMJrWKqwdmjBL9Y8VV7vNKuue9rOFKVeByeUBmgC7Yf0S4scULu01Wh7cyWub-MQZrb7rfy_fvIPdzEJwo"; // Token truncated for brevity
 
-  //const issuer = "https://example.com";
+  // Issuer's public key
+  const publicKey = "k4.public.vReOu5eFs0HYCYndN_fKrJM6e_VoidRcDAyIFLAtOEg"; // Could be paserk format
 
-  const reader = new PaymentInstructionsReader();
+  // Create a PASETO handler
+  const pasetoHandler = new PasetoV4Handler();
 
-  //const { publicKey, secretKey } = await PasetoV4Handler.generateKey("public", {
-  //  format: "paserk",
-  //});
-  const publicKey = "k4.public.64FidaOnFd6IIW1jijNMq3oYjxMaKl-VEsTdceofHzA";
-  const secretKey =
-    "k4.secret.UMJH8KZZPYkR2LL-D0PpnhpQ7zAEWjjdL-wlJJWkNRPrgWJ1o6cV3oghbWOKM0yrehiPExoqX5USxN1x6h8fMA";
+  // Create a payment instructions builder
+  const builder = new PaymentInstructionsReader(pasetoHandler);
 
-  console.log({ publicKey, secretKey });
-
-  const builder = new PaymentInstructionsBuilder();
-  const payload: InstructionPayload = {
-    payment: {
-      id: "6b56f488-5b35-42b7-86ed-fbd6345a72c0",
-      address: "TErQ1LTzFjNfswtHcgBrQw8vd4qXDTZrNP",
-      unique_asset_id: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-      is_open: false,
-      amount: "100.50",
-      expires_at: new Date().valueOf() + 60 * 60 * 1000,
-    },
-    order: {
-      total: "100500.00",
-      coin_code: "ARS",
-      description: "Test payment",
-      items: [
-        {
-          description: "itemName",
-          coin_code: "ARS",
-          amount: "100500.00",
-          quantity: 1,
-        },
-      ],
-      merchant: {
-        name: "Test Merchant",
-      },
-    },
+  // Reading options
+  const options = {
+    keyId: "my-key-id",
+    keyIssuer: "my-key-issuer",
   };
-  //const payload: UrlPayload = {
-  //  url: "https://example.com",
-  //};
 
-  const qrCrypto = await builder.create(payload, secretKey, {
-    keyId: "test-key-1",
-    keyIssuer: "test-issuer",
-    expiresIn: "1h",
-    keyExpiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    assertion: publicKey,
-  });
-  console.log("payload valid and token created:", {
-    qrCrypto,
-    length: qrCrypto.length,
-  });
-
-  const data = await reader.read({
-    qrPayment: qrCrypto,
+  // Read and verify the token
+  const result = await builder.read({
+    naspipToken,
     publicKey,
-    //options: { issuer },
+    options,
   });
 
-  console.log(JSON.stringify(data, null, 2));
+  // Process the result
+  console.log(
+    "Verified payment instruction:",
+    (result.payload.data as any).payment,
+  );
 }
 
-void main()
-  .catch((error) => console.error(error))
-  .then(() => process.exit());
+main().catch(console.error);

@@ -116,7 +116,7 @@ describe("Paseto Test", () => {
 });
 
 async function createTestToken() {
-  const builder = new PaymentInstructionsBuilder();
+  const builder = new PaymentInstructionsBuilder(new PasetoV4Handler());
 
   const qrPaymentToken = await builder.create(
     {
@@ -139,7 +139,7 @@ async function createTestToken() {
     },
   );
 
-  const reader = new PaymentInstructionsReader();
+  const reader = new PaymentInstructionsReader(new PasetoV4Handler());
 
   const decoded = reader.decode(qrPaymentToken);
 
