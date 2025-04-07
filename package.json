@@ -1,0 +1,108 @@
+{
+  "name": "naspip-ts",
+  "version": "1.0.0",
+  "description": "Typescript standard library for NASPIP(Network-Agnostic Standard Payment Instruction Protocol)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fluxisus/naspip-ts.git"
+  },
+  "keywords": [
+    "crypto",
+    "payments",
+    "standard",
+    "library",
+    "typescript",
+    "QRCodes",
+    "NASPIP"
+  ],
+  "author": "Ariel Brassesco, Ignacio Norris Perret",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fluxisus/naspip-ts/issues"
+  },
+  "homepage": "https://github.com/fluxisus/naspip-ts#readme",
+  "bin": {
+    "commit": "commit/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "files": [
+    "package.json",
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup ./src/index.ts --format cjs,esm --dts",
+    "build:script": "tsup ./scripts/index.ts --format cjs,esm",
+    "protoc": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=. ./src/encoding/protobuf/model.proto",
+    "clean": "rm -rf dist",
+    "clean-modules": "rm -rf node_modules",
+    "commit": "commit/cli.js",
+    "dev": "ts-node ./src/index.ts",
+    "husky": "husky init",
+    "lint": "eslint --cache ./src",
+    "prepare": "husky",
+    "release": "release-it",
+    "test": "jest",
+    "typecheck": "tsc -p tsconfig.typecheck.json",
+    "update": "npx npm-check-updates",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "ms": "^2.1.3",
+    "paseto": "^3.1.4",
+    "superstruct": "^2.0.2",
+    "ts-proto": "^2.6.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@jest/globals": "^29.7.0",
+    "@release-it/conventional-changelog": "^9.0.0",
+    "@swc/core": "^1.7.36",
+    "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@typescript-eslint/parser": "^8.11.0",
+    "commitizen": "^4.3.1",
+    "commitlint": "^19.5.0",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jest": "^28.8.3",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-sonarjs": "^2.0.4",
+    "husky": "^9.1.6",
+    "jest": "^29.7.0",
+    "npm-check-updates": "^17.1.4",
+    "release-it": "^17.10.0",
+    "ts-jest": "^29.2.5",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release v${version}"
+    },
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "publish": false
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "conventionalcommits",
+        "infile": "CHANGELOG.md"
+      }
+    }
+  }
+}
