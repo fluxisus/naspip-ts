@@ -16,7 +16,7 @@ This protocol enables secure interoperability between payment/collection platfor
 ## Installation
 
 ```bash
-npm install naspip-ts
+npm install @fluxisus/naspip-ts
 ```
 
 ## Usage Examples
