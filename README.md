@@ -29,14 +29,11 @@ import { PaymentInstructionsBuilder } from 'naspip-ts/payment-instruction';
 import { InstructionPayload, TokenCreateOptions } from 'naspip-ts/types';
 
 async function main() {
-  // Create a PASETO handler
-  const pasetoHandler = new PasetoV4Handler();
-
   // Generate a key pair (for example purposes)
   const keys = await PasetoV4Handler.generateKey('public', { format: "paserk" });
 
   // Create a payment instructions builder
-  const builder = new PaymentInstructionsBuilder(pasetoHandler);
+  const builder = new PaymentInstructionsBuilder();
 
   // Create a payment instruction
   const paymentInstruction: InstructionPayload = {
@@ -74,7 +71,7 @@ async function main() {
   const token = await builder.create(paymentInstruction, keys.secretKey, options);
 
   // Print the NASPIP token
-  console.log(`QR Token: ${token}`);
+  console.log(`NASPIP Token: ${token}`);
 }
 
 main().catch(console.error);
@@ -93,11 +90,8 @@ async function main() {
   // Issuer's public key
   const publicKey = "issuer-public-key"; // Could be paserk format
 
-  // Create a PASETO handler
-  const pasetoHandler = new PasetoV4Handler();
-
   // Create a payment instructions builder
-  const builder = new PaymentInstructionsReader(pasetoHandler);
+  const builder = new PaymentInstructionsReader();
 
   // Reading options
   const options = {
@@ -123,14 +117,11 @@ import { PaymentInstructionsBuilder } from 'naspip-ts/payment-instruction';
 import { UrlPayload, TokenCreateOptions } from 'naspip-ts/types';
 
 async function main() {
-  // Create a PASETO handler
-  const pasetoHandler = new PasetoV4Handler();
-
   // Generate a key pair (for example purposes)
   const keys = await PasetoV4Handler.generateKey('public', { format: "paserk" });
 
   // Create a payment instructions builder
-  const builder = new PaymentInstructionsBuilder(pasetoHandler);
+  const builder = new PaymentInstructionsBuilder();
 
   // Create a URL payload
   const urlPayload: UrlPayload = {
