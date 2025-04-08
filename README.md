@@ -1,7 +1,7 @@
 # NASPIP - Network-Agnostic Secure Payment Instructions Protocol (TypeScript)
 
-[![npm version](https://img.shields.io/npm/v/naspip-ts.svg)](https://www.npmjs.com/package/naspip-ts)
-[![License](https://img.shields.io/npm/l/naspip-ts.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@fluxisus/naspip-ts.svg)](https://www.npmjs.com/package/@fluxisus/naspip-ts)
+[![License](https://img.shields.io/npm/l/@fluxisus/naspip-ts.svg)](LICENSE)
 
 TypeScript library implementing the Network-Agnostic Secure Payment Instructions Protocol (NASPIP). This library enables the creation and validation of standardized payment instructions for cryptocurrencies and other digital assets.
 
