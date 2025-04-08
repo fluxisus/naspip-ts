@@ -24,9 +24,9 @@ npm install @fluxisus/naspip-ts
 ### Create a Payment Instruction
 
 ```typescript
-import { PasetoV4Handler } from 'naspip-ts/utils';
-import { PaymentInstructionsBuilder } from 'naspip-ts/payment-instruction';
-import { InstructionPayload, TokenCreateOptions } from 'naspip-ts/types';
+import { PasetoV4Handler } from '@fluxisus/naspip-ts/utils';
+import { PaymentInstructionsBuilder } from '@fluxisus/naspip-ts/payment-instruction';
+import { InstructionPayload, TokenCreateOptions } from '@fluxisus/naspip-ts/types';
 
 async function main() {
   // Generate a key pair (for example purposes)
@@ -80,8 +80,8 @@ main().catch(console.error);
 ### Read and Verify a Payment Instruction
 
 ```typescript
-import { PasetoV4Handler } from 'naspip-ts/utils';
-import { PaymentInstructionsReader } from 'naspip-ts/payment-instruction';
+import { PasetoV4Handler } from '@fluxisus/naspip-ts/utils';
+import { PaymentInstructionsReader } from '@fluxisus/naspip-ts/payment-instruction';
 
 async function main() {
   // NASPIP token (obtained from a QR or link)
@@ -112,9 +112,9 @@ main().catch(console.error);
 ### Create a Payment Link
 
 ```typescript
-import { PasetoV4Handler } from 'naspip-ts/utils';
-import { PaymentInstructionsBuilder } from 'naspip-ts/payment-instruction';
-import { UrlPayload, TokenCreateOptions } from 'naspip-ts/types';
+import { PasetoV4Handler } from '@fluxisus/naspip-ts/utils';
+import { PaymentInstructionsBuilder } from '@fluxisus/naspip-ts/payment-instruction';
+import { UrlPayload, TokenCreateOptions } from '@fluxisus/naspip-ts/types';
 
 async function main() {
   // Generate a key pair (for example purposes)
