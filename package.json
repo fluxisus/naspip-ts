@@ -1,6 +1,6 @@
 {
   "name": "@fluxisus/naspip-ts",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Typescript standard library for NASPIP(Network-Agnostic Standard Payment Instruction Protocol)",
   "repository": {
     "type": "git",
