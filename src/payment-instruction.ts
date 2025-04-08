@@ -23,26 +23,17 @@ import {
 } from "./utils";
 
 /**
- * Class to handle payment instruction token (qr-crypto token) creation with payload validation
- *
- * @returns
- * `PaymentInstructionsBuilder`
- *
- * @example
- * ```ts
- * const builder = new PaymentInstructionsBuilder();
- * ```
+ * Class to handle NASPIP token creation with payload validation
  */
-
 export class PaymentInstructionsBuilder {
   private pasetoHandler: PasetoV4Handler;
 
-  constructor(pasetoHandler: PasetoV4Handler) {
-    this.pasetoHandler = pasetoHandler;
+  constructor(pasetoHandler?: PasetoV4Handler) {
+    this.pasetoHandler = pasetoHandler ?? new PasetoV4Handler();
   }
 
   /**
-   * Create a QR-Crypto token
+   * Create a NASPIP token
    *
    * @param data - InstructionPayload | UrlPayload;
    * @param secretKey - string;
@@ -57,30 +48,44 @@ export class PaymentInstructionsBuilder {
    * ```ts
    * const builder = new PaymentInstructionsBuilder();
    *
-   * await builder.create(
-   *   {
-   *     payment: {
-   *       id: "payment-id",
-   *       address: "crypto-address",
-   *       network_token: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-   *       is_open: true,
-   *       expires_at: 1739802610209,
+   * ** Create a payment instruction
+   *  const paymentInstruction: InstructionPayload = {
+   *   payment: {
+   *     id: "payment123",
+   *     address: "TRjE1H8dxypKM1NZRdysbs9wo7huR4bdNz",
+   *     unique_asset_id: "ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+   *     is_open: false,
+   *     amount: "10.52",
+   *     expires_at: Date.now() + 3600000, // 1 hour
+   *   },
+   *   order: {
+   *     total: "10.52",
+   *     coin_code: "USD",
+   *     description: "Payment for XYZ service",
+   *     merchant: {
+   *       name: "My Store",
    *     },
    *   },
-   *   secretKey: "some-private-secret",
-   *   {
-   *     issuer: "client.com",
-   *     expiresIn: "1h",
-   *     keyId: "key-id-one",
-   *     keyExpiration: "2025-12-12T01:00:00.000Z",
-   *     keyIssuer: "my-bussines.com",
-   *   }
-   * });
+   * };
    *
-   * returns
-   * ```ts
-   * "qr-crypto.v4.public...."
-   * ```
+   * ** Options for token creation
+   *  const options: TokenCreateOptions = {
+   *   issuer: "my-company-name",
+   *   expiresIn: "3h",
+   *   assertion: keys.publicKey,
+   *   keyId: "my-key-id",
+   *   keyIssuer: "my-key-issuer",
+   *   keyExpiration: new Date(
+   *     Date.now() + 10 * 365 * 24 * 60 * 60 * 1000,
+   *   ).toISOString(), // 10 years
+   * };
+   *
+   * ** Create the signed payment instruction
+   * const token = await builder.create(paymentInstruction, "some-secret-key", options);
+   *
+   * ** Print the NASPIP token
+   * console.log(`NASPIP Token: ${token}`);
+   *
    */
   public async create(
     data: InstructionPayload | UrlPayload,
@@ -141,7 +146,7 @@ export class PaymentInstructionsBuilder {
    *   payment: {
    *     id: "payment-id",
    *     address: "crypto-address",
-   *     network_token: ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t,
+   *     unique_asset_id: ntrc20_tTR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t,
    *     is_open: true,
    *     expires_at: 17855465854,
    *   },
@@ -321,20 +326,13 @@ export class PaymentInstructionsBuilder {
 }
 
 /**
- * Class to handle payment instruction token (qr-crypto token) reading
- *
- * @returns PaymentInstructionsReader
- *
- * @example
- * ```ts
- * const reader = new PaymentInstructionsReader();
- * ```
+ * Class to handle NASPIP token reading
  */
 export class PaymentInstructionsReader {
   private pasetoHandler: PasetoV4Handler;
 
-  constructor(pasetoHandler: PasetoV4Handler) {
-    this.pasetoHandler = pasetoHandler;
+  constructor(pasetoHandler?: PasetoV4Handler) {
+    this.pasetoHandler = pasetoHandler ?? new PasetoV4Handler();
   }
 
   public decode(naspipToken: string) {
@@ -356,9 +354,9 @@ export class PaymentInstructionsReader {
   }
 
   /**
-   * Read a QR payment instruction
+   * Read a NASPIP token
    *
-   * @param qrPayment - QR-Crypto token string
+   * @param naspipToken - NASPIP token string
    * @param publicKey - string
    * @param options - ConsumeOptions<true> (optional)
    *
@@ -376,10 +374,9 @@ export class PaymentInstructionsReader {
    * const reader = new PaymentInstructionsReader();
    *
    * reader.read({
-   *    qrPayment: "naspip;keyIssuer;keyId;v4.public....",
+   *    naspipToken: "naspip;keyIssuer;keyId;v4.public....",
    *    publicKey: "some-public-key",
-   *    issuerDomain: "qrCrypto.com",
-   *    options: { subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
+   *    options: { issuer: "qrCrypto.com", subject: "customer@qrCrypto.com", audience: "payer-crypto.com"}
    * });
    *
    * returns
@@ -388,7 +385,7 @@ export class PaymentInstructionsReader {
    *   version: "v4",
    *   purpose: "public",
    *   payload: {
-   *    payload: {
+   *    data: {
    *      payment: {...},
    *      order: {....}
    *    },

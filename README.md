@@ -1,7 +1,7 @@
 # NASPIP - Network-Agnostic Secure Payment Instructions Protocol (TypeScript)
 
-[![npm version](https://img.shields.io/npm/v/naspip-ts.svg)](https://www.npmjs.com/package/naspip-ts)
-[![License](https://img.shields.io/npm/l/naspip-ts.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@fluxisus/naspip-ts.svg)](https://www.npmjs.com/package/@fluxisus/naspip-ts)
+[![License](https://img.shields.io/npm/l/@fluxisus/naspip-ts.svg)](LICENSE)
 
 TypeScript library implementing the Network-Agnostic Secure Payment Instructions Protocol (NASPIP). This library enables the creation and validation of standardized payment instructions for cryptocurrencies and other digital assets.
 
@@ -16,7 +16,7 @@ This protocol enables secure interoperability between payment/collection platfor
 ## Installation
 
 ```bash
-npm install naspip-ts
+npm install @fluxisus/naspip-ts
 ```
 
 ## Usage Examples
@@ -29,14 +29,11 @@ import { PaymentInstructionsBuilder } from 'naspip-ts/payment-instruction';
 import { InstructionPayload, TokenCreateOptions } from 'naspip-ts/types';
 
 async function main() {
-  // Create a PASETO handler
-  const pasetoHandler = new PasetoV4Handler();
-
   // Generate a key pair (for example purposes)
   const keys = await PasetoV4Handler.generateKey('public', { format: "paserk" });
 
   // Create a payment instructions builder
-  const builder = new PaymentInstructionsBuilder(pasetoHandler);
+  const builder = new PaymentInstructionsBuilder();
 
   // Create a payment instruction
   const paymentInstruction: InstructionPayload = {
@@ -74,7 +71,7 @@ async function main() {
   const token = await builder.create(paymentInstruction, keys.secretKey, options);
 
   // Print the NASPIP token
-  console.log(`QR Token: ${token}`);
+  console.log(`NASPIP Token: ${token}`);
 }
 
 main().catch(console.error);
@@ -93,11 +90,8 @@ async function main() {
   // Issuer's public key
   const publicKey = "issuer-public-key"; // Could be paserk format
 
-  // Create a PASETO handler
-  const pasetoHandler = new PasetoV4Handler();
-
   // Create a payment instructions builder
-  const builder = new PaymentInstructionsReader(pasetoHandler);
+  const builder = new PaymentInstructionsReader();
 
   // Reading options
   const options = {
@@ -123,14 +117,11 @@ import { PaymentInstructionsBuilder } from 'naspip-ts/payment-instruction';
 import { UrlPayload, TokenCreateOptions } from 'naspip-ts/types';
 
 async function main() {
-  // Create a PASETO handler
-  const pasetoHandler = new PasetoV4Handler();
-
   // Generate a key pair (for example purposes)
   const keys = await PasetoV4Handler.generateKey('public', { format: "paserk" });
 
   // Create a payment instructions builder
-  const builder = new PaymentInstructionsBuilder(pasetoHandler);
+  const builder = new PaymentInstructionsBuilder();
 
   // Create a URL payload
   const urlPayload: UrlPayload = {
